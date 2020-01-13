@@ -18,6 +18,7 @@ public class GUI extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					//Run the GUI class
 					GUI frame = new GUI();
 					frame.setVisible(true);
 				} catch (Exception e) {
