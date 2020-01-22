@@ -1,5 +1,6 @@
 package venn;
 
+import java.awt.BorderLayout;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,14 +11,15 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
-public class Main implements MouseListener, ActionListener {
+public class Main extends JPanel{
 	public final static int WIDTH = 500, HEIGHT = 500;
 	public static boolean TRIGGERED = false;
 	private JFrame frame;
 	private JButton btnAdd;
 	private List<Circle> circles;
-	private MainPaint mp;
+	
 	
 	public Main() {
 		frame = new JFrame("Customizable Venn Diagram");
@@ -26,73 +28,24 @@ public class Main implements MouseListener, ActionListener {
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(false);
 		frame.setLayout(null);
+		frame.add(this);
 		frame.setVisible(true);
-
-		
-		mp = new MainPaint();
-		mp.setSize(200,200);
-		frame.add(mp);
-		
-		btnAdd = new JButton("Add");
-		btnAdd.setBounds((WIDTH/2)-50, HEIGHT-100, 100, 50);
-		btnAdd.addActionListener(this);
-		frame.add(btnAdd);
-	
-		
+		this.setSize(WIDTH,HEIGHT);
+		this.repaint();
 		circles = new ArrayList<Circle>();
 		
-		circles.add(new Circle(WIDTH - (WIDTH/4), HEIGHT/2, 100, 100));
-		repaint(circles.get(circles.size()-1));
-		circles.add(new Circle(WIDTH/4, HEIGHT/2, 100, 100));
-		repaint(circles.get(circles.size()-1));
+//		circles.add(new Circle(WIDTH - (WIDTH/4), HEIGHT/2, 100, 100));
+//		circles.add(new Circle(WIDTH/4, HEIGHT/2, 100, 100));
 		
 		
 		
 	}
 	
-	public void repaint(Circle circle) {
-		Main.TRIGGERED = true;
-		mp.paintHelper(mp.getGraphics(),circle);
-	}
 	@Override
-	public void mouseClicked(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
+	public void paintComponent(Graphics g) {
+		g.drawOval((WIDTH/4)-50, HEIGHT/2-100, 200, 200);
+		g.drawOval((WIDTH/4)+70, HEIGHT/2-100, 200, 200);
 	}
 
-	@Override
-	public void mouseEntered(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseExited(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mousePressed(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		if(btnAdd == arg0.getSource()) {
-			circles.add(new Circle(WIDTH/2, HEIGHT/4, 100-Circle.NUM_CIRCLES, 100-Circle.NUM_CIRCLES));
-			repaint(circles.get(circles.size()-1));
-		}
-		
-		mp.repaint();
-		
-	}
 
 }
