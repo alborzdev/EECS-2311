@@ -64,6 +64,7 @@ public class Main extends JPanel implements MouseListener, MouseMotionListener{
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
 		// TODO Auto-generated method stub
+		if(75 <= arg0.getX() && arg0.getX() <= 395) {
 		numClicks++;
 		xPos = arg0.getX();
 		yPos = arg0.getY();
@@ -80,7 +81,7 @@ public class Main extends JPanel implements MouseListener, MouseMotionListener{
 			paintComponent(this.getGraphics());
 		}
 		pressedCancel = false;
-
+		}
 	}
 
 	@Override
@@ -94,7 +95,6 @@ public class Main extends JPanel implements MouseListener, MouseMotionListener{
 		// TODO Auto-generated method stub
 		
 	}
-
 	@Override
 	public void mousePressed(MouseEvent arg0) {
 		// TODO Auto-generated method stub
