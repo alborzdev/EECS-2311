@@ -64,7 +64,8 @@ public class Main extends JPanel implements MouseListener, MouseMotionListener{
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		if(75 <= arg0.getX() && arg0.getX() <= 395) {
+		if((WIDTH/4)-50 <= arg0.getX() && arg0.getX() <= (WIDTH/4)+270) {
+			if ((HEIGHT/2)-100 <= arg0.getY() && arg0.getY() <= (HEIGHT/2)+100)
 		numClicks++;
 		xPos = arg0.getX();
 		yPos = arg0.getY();
