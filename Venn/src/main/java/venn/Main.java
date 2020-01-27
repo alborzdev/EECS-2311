@@ -21,7 +21,7 @@ public class Main extends JPanel implements MouseListener{
 	private int xPos, yPos; // variables for x and y position for the mouse
 	private String strInput; // string variable for inputting Text that will display on the frame
 	private int numClicks; // the number of mouse clicks on the frame
-	private JButton btnAdd; // Add button to add more circles
+	private JButton btnAdd; // Add button to add more circles TEST COMMENT
 	
 	public Main() {
 		//initializes the frame to have certain properties
