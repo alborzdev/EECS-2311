@@ -1,8 +1,6 @@
-<<<<<<< HEAD
+
 //Develop Branch
-=======
-//MERGE TEST WITH DEVELOP
->>>>>>> refs/remotes/origin/Alborz
+
 package venn;
 
 import java.awt.Graphics;
