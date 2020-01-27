@@ -64,8 +64,8 @@ public class Main extends JPanel implements MouseListener, MouseMotionListener{
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		if((WIDTH/4)-50 <= arg0.getX() && arg0.getX() <= (WIDTH/4)+270) {
-			if ((HEIGHT/2)-100 <= arg0.getY() && arg0.getY() <= (HEIGHT/2)+100)
+		if((WIDTH/4)-50 <= arg0.getX() && arg0.getX() <= (WIDTH/4)+270) {		//Boundary in the X component of the screen
+			if ((HEIGHT/2)-100 <= arg0.getY() && arg0.getY() <= (HEIGHT/2)+100) {		// Boundary in the Y component of the screen
 		numClicks++;
 		xPos = arg0.getX();
 		yPos = arg0.getY();
@@ -82,6 +82,7 @@ public class Main extends JPanel implements MouseListener, MouseMotionListener{
 			paintComponent(this.getGraphics());
 		}
 		pressedCancel = false;
+		}
 		}
 	}
 
