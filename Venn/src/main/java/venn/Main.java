@@ -58,6 +58,9 @@ public class Main extends JPanel implements MouseListener {
 
 	}
 
+	Color yellow1 = new Color(255, 255, 127);
+	Color blue1 = new Color(137, 207, 240);
+
 	@Override
 	public void paintComponent(Graphics g) {
 		// This code will be changed later but for now..
@@ -65,12 +68,12 @@ public class Main extends JPanel implements MouseListener {
 		// draws default 2 circles when frame is displayed
 		if (numClicks == 0) {
 			// sets the colour of the first circle to yellow
-			g.setColor(Color.yellow);
+			g.setColor(yellow1);
 			// draws the first circle to be in the middle and to the left
 			g.fillOval((WIDTH / 4) - 50, HEIGHT / 2 - 100, 200, 200);
 
 			// sets the colour of the second circle to blue
-			g.setColor(Color.BLUE);
+			g.setColor(blue1);
 			// draws the second circle to be in the middle and to the right
 			g.fillOval((WIDTH / 4) + 70, HEIGHT / 2 - 100, 200, 200);
 		}
