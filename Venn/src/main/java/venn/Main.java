@@ -1,5 +1,6 @@
 package venn;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -63,12 +64,15 @@ public class Main extends JPanel implements MouseListener {
 
 		// draws default 2 circles when frame is displayed
 		if (numClicks == 0) {
-
+			// sets the colour of the first circle to yellow
+			g.setColor(Color.yellow);
 			// draws the first circle to be in the middle and to the left
-			g.drawOval((WIDTH / 4) - 50, HEIGHT / 2 - 100, 200, 200);
+			g.fillOval((WIDTH / 4) - 50, HEIGHT / 2 - 100, 200, 200);
 
+			// sets the colour of the second circle to blue
+			g.setColor(Color.BLUE);
 			// draws the second circle to be in the middle and to the right
-			g.drawOval((WIDTH / 4) + 70, HEIGHT / 2 - 100, 200, 200);
+			g.fillOval((WIDTH / 4) + 70, HEIGHT / 2 - 100, 200, 200);
 		}
 
 		// adds new circles as you click add button
