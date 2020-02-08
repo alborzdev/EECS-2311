@@ -18,6 +18,7 @@ public class Main extends JPanel implements MouseListener {
 	private int xPos, yPos; // variables for x and y position for the mouse
 	private String strInput; // string variable for inputting Text that will display on the frame
 	private int numClicks; // the number of mouse clicks on the frame
+	private int addNumClicks; // the number of mouse clicks on the add button
 	private JButton btnAdd; // Add button to add more circles TEST COMMENT
 
 	public Main() {
@@ -58,8 +59,9 @@ public class Main extends JPanel implements MouseListener {
 
 	}
 
-	Color yellow1 = new Color(255, 255, 127);
-	Color blue1 = new Color(137, 207, 240);
+	Color yellow = new Color(255, 255, 127);
+	Color skyBlue = new Color(137, 207, 240);
+	Color white = new Color(255, 255, 255);
 
 	@Override
 	public void paintComponent(Graphics g) {
@@ -68,14 +70,15 @@ public class Main extends JPanel implements MouseListener {
 		// draws default 2 circles when frame is displayed
 		if (numClicks == 0) {
 			// sets the colour of the first circle to yellow
-			g.setColor(yellow1);
+			g.setColor(yellow);
 			// draws the first circle to be in the middle and to the left
 			g.fillOval((WIDTH / 4) - 50, HEIGHT / 2 - 100, 200, 200);
 
 			// sets the colour of the second circle to blue
-			g.setColor(blue1);
+			g.setColor(skyBlue);
 			// draws the second circle to be in the middle and to the right
 			g.fillOval((WIDTH / 4) + 70, HEIGHT / 2 - 100, 200, 200);
+			
 		}
 
 		// adds new circles as you click add button
@@ -85,7 +88,11 @@ public class Main extends JPanel implements MouseListener {
 			// for example if you have clicked 5 times on the frame so far then it will
 			// reduce circle's height by 5.
 			// g.drawOval(x, y, width, height) <-- input arguments are as follows
-			g.drawOval((WIDTH / 4) - 50, HEIGHT / 2 - 100, 200, 200 - numClicks);
+			if(addNumClicks == 1) {
+				g.setColor(white);
+				g.fillOval((WIDTH / 4) - 100, HEIGHT / 2 - 100, 200, 200);
+			}
+			
 			addClicked = false;
 		}
 
@@ -133,14 +140,16 @@ public class Main extends JPanel implements MouseListener {
 
 					// sets the pressedCancel to have default value
 					pressedCancel = false;
-
-				} else if (arg0.getSource() == btnAdd) { // if mouse is clicked on the button add then
-					numClicks++; // increases the clicks done on the frame
-					addClicked = true; // sets the addClicked to true
-					paintComponent(this.getGraphics()); // calls the paintComponent method to draw more circles
 				}
 			}
-		}
+
+				} else if (arg0.getSource() == btnAdd) { // if mouse is clicked on the button add then
+					addClicked = true; // sets the addClicked to true
+					addNumClicks++; // increases the clicks done on the frame
+					paintComponent(this.getGraphics()); // calls the paintComponent method to draw more circles
+				}
+			
+		
 	}
 
 	@Override
