@@ -1,10 +1,10 @@
 package venn;
 
-public class SetupFrameRunner {
+public class CustomizeFrameRunner {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		SetupFrame frame= new SetupFrame();
+		CustomizeFrame frame= new CustomizeFrame();
 	}
 
 }
