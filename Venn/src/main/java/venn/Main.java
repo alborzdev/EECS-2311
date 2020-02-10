@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 public class Main extends JPanel implements MouseListener {
 	public final static int WIDTH = 700, HEIGHT = 700; // size of the window/frame
@@ -37,10 +38,12 @@ public class Main extends JPanel implements MouseListener {
 	private int numClicks; // the number of mouse clicks on the frame
 	private int addClicks = 0; //number of clicks on the "Add" button
 	private JButton btnAdd; // Add button to add more circles TEST COMMENT
+	private JTextField txtNameYellow;
+	private JTextField txtNameBlue;
 
 	public Main() {
 		// initializes the frame to have certain properties
-		frame = new JFrame("Customizable Venn Diagram"); // inside "" is the name for the window/frame
+		frame = new JFrame(Settings.name); // inside "" is the name for the window/frame
 		frame.setSize(WIDTH, HEIGHT); // sets the frame to have size of 500 by 500
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // closes the frame when x button is clicked (top right
 																// button)
@@ -124,6 +127,7 @@ public class Main extends JPanel implements MouseListener {
 
 		// adds new text on the screen when clicked on the frame
 		if (triggered) {
+			g.setFont(Settings.font);
 			g.drawString(strInput, xPos, yPos - 7);
 			
 			if(yellowLegend && yellowLegendAdded == false) {
@@ -131,7 +135,11 @@ public class Main extends JPanel implements MouseListener {
 				g.setColor(yellow);
 				g.fillRect(50, 50, 20, 20);
 				g.setColor(black);
-				g.drawString("Add Title", 75, 63);
+				txtNameYellow = new JTextField();
+				txtNameYellow.setText("Add Title");
+				txtNameYellow.setBounds(75, 45, 100, 30);
+				txtNameYellow.addMouseListener(this);
+				frame.add(txtNameYellow);
 				yellowLegendAdded = true;
 			}
 			else if(blueLegend && blueLegendAdded == false) {
@@ -140,6 +148,11 @@ public class Main extends JPanel implements MouseListener {
 				g.fillRect(200, 50, 20, 20);
 				g.setColor(black);
 				g.drawString("Add Title", 225, 63);
+				txtNameBlue = new JTextField();
+				txtNameBlue.setText("Add Title");
+				txtNameBlue.setBounds(225, 45, 100, 30);
+				txtNameBlue.addMouseListener(this);
+				frame.add(txtNameBlue);
 				blueLegendAdded = true;
 			}
 			else if(yellowAndBlueLegend && yellowAndBlueLegendAdded == false ) {
@@ -175,7 +188,22 @@ public class Main extends JPanel implements MouseListener {
 		// Radius of circle (its smaller than 100 so the number actually appears in the
 		// circle, small bug)
 		circleRadius = 100;
-
+		if(arg0.getSource() != txtNameYellow && yellowLegendAdded) {
+			txtNameYellow.setEditable(false);
+		} else if(arg0.getSource() == txtNameYellow && yellowLegendAdded) {
+			txtNameYellow.setEditable(true);
+			txtNameYellow.setEnabled(true);
+		}
+		if(arg0.getSource() != txtNameBlue && blueLegendAdded) {
+			txtNameBlue.setEditable(false);
+		} else if(arg0.getSource() == txtNameBlue && blueLegendAdded) {
+			txtNameBlue.setEditable(true);
+			txtNameBlue.setEnabled(true);
+		}
+		
+		
+		
+		
 		// This if block is checking if the btnAdd is not clicked and if there are ONLY
 		// 2 CIRCLES, then do the following
 		if (arg0.getSource() != btnAdd && addClicks == 0
@@ -202,6 +230,7 @@ public class Main extends JPanel implements MouseListener {
 				triggered = true;
 				if (maxBoundYellow < circleRadius && maxBoundBlue > circleRadius) { //check to see if click is ONLY in yellow circle
 					yellowLegend = true;
+					
 				} //later, make the "yellowLegendAdded" boolean false if the circle is REMOVED (will be implemented at a later time)
 				else if(maxBoundYellow > circleRadius && maxBoundBlue < circleRadius) { //check to see if click is ONLY in blue circle
 					blueLegend = true;
