@@ -17,6 +17,8 @@ public class Main extends JPanel implements MouseListener {
 	private boolean triggered, pressedCancel, addClicked; // booleans for checking if certain buttons are pressed
 	private JFrame frame; // declares frame
 	private int xPos, yPos; // variables for x and y position for the mouse
+	private boolean circlesChosen3;
+	private boolean circlesChosen4;
 	private double maxBoundYellow; // Maximum bound for first circle (circle on left, yellow)
 	private double maxBoundBlue; // Maximum bound for second circle (circle on right, skyblue)
 	private double maxBoundWhite; // Maximum bound for third circle (circle on top, white)
@@ -98,20 +100,25 @@ public class Main extends JPanel implements MouseListener {
 		}
 
 		// adds new circles as you click add button
-		if (addClicks == 1 && addClicked == true) {
+		if (addClicks == 1 && addClicked == true || Settings.numCircles >= 3 && circlesChosen3 == false)  {
+			addClicks = 1;
 			g.setColor(black);
 			g.drawOval((WIDTH / 3), HEIGHT / 2 - 180, 200, 200);
 
 			g.setColor(white);
 			// draws the first circle to be in the middle and to the left
 			g.fillOval((WIDTH / 3), HEIGHT / 2 - 180, 200, 200);
+			circlesChosen3 = true;
 			addClicked = false;
-		} else if (addClicks == 2 && addClicked == true) {
+		} 
+		if (addClicks == 2 && addClicked == true || Settings.numCircles == 4 && circlesChosen4 == false) {
+			addClicks = 2;
 			g.setColor(black);
 			g.drawOval((WIDTH / 3), HEIGHT / 2 - 20, 200, 200);
 			g.setColor(lightGreen);
 			// draws the first circle to be in the middle and to the left
 			g.fillOval((WIDTH / 3), HEIGHT / 2 - 20, 200, 200);
+			circlesChosen4 = true;
 			addClicked = false;
 		}
 
