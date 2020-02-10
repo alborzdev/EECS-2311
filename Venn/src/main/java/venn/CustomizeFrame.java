@@ -27,7 +27,9 @@ public class CustomizeFrame extends JFrame implements ActionListener{
 	private final int WIDTH = 800, HEIGHT = 400, NUM_CIRCLES_MIN = 2, NUM_CIRCLES_MAX = 7, NUM_CIRCLES_INIT = 2;
 	
 	public CustomizeFrame() {
+		
 		//initialize frame components
+		setTitle("Customizable Venn Diagram");
 		setSize(WIDTH, HEIGHT);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
@@ -170,6 +172,10 @@ public class CustomizeFrame extends JFrame implements ActionListener{
 		
 		add(split2);
 		setVisible(true);
+		
+		//Welcome popup
+		JOptionPane.showMessageDialog(this, "Welcome to Venn Diagram Application!");
+
 	}
 
 	@Override
