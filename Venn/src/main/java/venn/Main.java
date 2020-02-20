@@ -22,7 +22,7 @@ public class Main extends JPanel implements MouseListener {
 	private double maxBoundWhite; // Maximum bound for third circle (circle on top, white)
 	private double maxBoundGreen; // Maximum bound for third circle (circle on top, white)
 	private String yellowLegendTitle;
-	private boolean yellowLegend; //a check to see if the legend for any circle has been displayed
+	private boolean yellowLegend; // a check to see if the legend for any circle has been displayed
 	private boolean yellowLegendAdded;
 	private boolean blueLegend;
 	private boolean blueLegendAdded;
@@ -30,10 +30,10 @@ public class Main extends JPanel implements MouseListener {
 	private boolean yellowAndBlueLegendAdded;
 	private boolean whiteLegend;
 	private boolean greenLegend;
-	private int circleRadius; //radius of circle
+	private int circleRadius; // radius of circle
 	private String strInput; // string variable for inputting Text that will display on the frame
 	private int numClicks; // the number of mouse clicks on the frame
-	private int addClicks = 0; //number of clicks on the "Add" button
+	private int addClicks = 0; // number of clicks on the "Add" button
 	private JButton btnAdd; // Add button to add more circles TEST COMMENT
 
 	public Main() {
@@ -118,24 +118,22 @@ public class Main extends JPanel implements MouseListener {
 		// adds new text on the screen when clicked on the frame
 		if (triggered) {
 			g.drawString(strInput, xPos, yPos - 7);
-			
-			if(yellowLegend && yellowLegendAdded == false) {
+
+			if (yellowLegend && yellowLegendAdded == false) {
 				g.drawRect(50, 50, 20, 20);
 				g.setColor(yellow);
 				g.fillRect(50, 50, 20, 20);
 				g.setColor(black);
 				g.drawString("Add Title", 75, 63);
 				yellowLegendAdded = true;
-			}
-			else if(blueLegend && blueLegendAdded == false) {
+			} else if (blueLegend && blueLegendAdded == false) {
 				g.drawRect(200, 50, 20, 20);
 				g.setColor(blue);
 				g.fillRect(200, 50, 20, 20);
 				g.setColor(black);
 				g.drawString("Add Title", 225, 63);
 				blueLegendAdded = true;
-			}
-			else if(yellowAndBlueLegend && yellowAndBlueLegendAdded == false ) {
+			} else if (yellowAndBlueLegend && yellowAndBlueLegendAdded == false) {
 				g.drawRect(350, 50, 20, 20);
 				g.drawRect(400, 50, 20, 20);
 				g.setColor(yellow);
@@ -146,8 +144,8 @@ public class Main extends JPanel implements MouseListener {
 				g.fillRect(400, 50, 20, 20);
 				yellowAndBlueLegendAdded = true;
 			}
-			
-			triggered = false; 
+
+			triggered = false;
 
 		}
 	}
@@ -157,7 +155,6 @@ public class Main extends JPanel implements MouseListener {
 
 		xPos = arg0.getX(); // gets mouse x pos
 		yPos = arg0.getY();// gets mouse y pos
-		
 
 		// Max bounds for each circle by colour
 		maxBoundYellow = Math.sqrt((xPos - 262) * (xPos - 262) + (yPos - 368) * (yPos - 368));
@@ -172,7 +169,7 @@ public class Main extends JPanel implements MouseListener {
 		// This if block is checking if the btnAdd is not clicked and if there are ONLY
 		// 2 CIRCLES, then do the following
 		if (arg0.getSource() != btnAdd && addClicks == 0
-				&& (maxBoundYellow < circleRadius || maxBoundBlue < circleRadius)) { 
+				&& (maxBoundYellow < circleRadius || maxBoundBlue < circleRadius)) {
 			numClicks++; // increases clicks done on the frame
 			try {
 				// takes the input from the user but if user enters nothing or "Test" then it
@@ -193,13 +190,15 @@ public class Main extends JPanel implements MouseListener {
 			// this is will print the user text if they haven't clicked cancel on the dialog
 			if (!pressedCancel) {
 				triggered = true;
-				if (maxBoundYellow < circleRadius && maxBoundBlue > circleRadius) { //check to see if click is ONLY in yellow circle
+				if (maxBoundYellow < circleRadius && maxBoundBlue > circleRadius) { // check to see if click is ONLY in
+																					// yellow circle
 					yellowLegend = true;
-				} //later, make the "yellowLegendAdded" boolean false if the circle is REMOVED (will be implemented at a later time)
-				else if(maxBoundYellow > circleRadius && maxBoundBlue < circleRadius) { //check to see if click is ONLY in blue circle
+				} // later, make the "yellowLegendAdded" boolean false if the circle is REMOVED
+					// (will be implemented at a later time)
+				else if (maxBoundYellow > circleRadius && maxBoundBlue < circleRadius) { // check to see if click is
+																							// ONLY in blue circle
 					blueLegend = true;
-				}
-				else if(maxBoundYellow < circleRadius && maxBoundBlue < circleRadius) {
+				} else if (maxBoundYellow < circleRadius && maxBoundBlue < circleRadius) {
 					yellowAndBlueLegend = true;
 				}
 				paintComponent(this.getGraphics());
@@ -211,7 +210,7 @@ public class Main extends JPanel implements MouseListener {
 		// This if block is checking if the btnAdd is not clicked and if there are ONLY
 		// 3 CIRCLES, then do the following
 		else if (arg0.getSource() != btnAdd && addClicks == 1
-				&& (maxBoundYellow < circleRadius || maxBoundBlue < circleRadius || maxBoundWhite < circleRadius)) { 
+				&& (maxBoundYellow < circleRadius || maxBoundBlue < circleRadius || maxBoundWhite < circleRadius)) {
 
 			numClicks++; // increases clicks done on the frame
 			try {
@@ -239,7 +238,7 @@ public class Main extends JPanel implements MouseListener {
 			// sets the pressedCancel to have default value
 			pressedCancel = false;
 		} else if (arg0.getSource() != btnAdd && addClicks == 2 && (maxBoundYellow < circleRadius
-				|| maxBoundBlue < circleRadius || maxBoundWhite < circleRadius || maxBoundGreen < circleRadius)) { 																													
+				|| maxBoundBlue < circleRadius || maxBoundWhite < circleRadius || maxBoundGreen < circleRadius)) {
 			numClicks++; // increases clicks done on the frame
 			try {
 				// takes the input from the user but if user enters nothing or "Test" then it
