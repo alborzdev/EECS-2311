@@ -52,8 +52,8 @@ public class CustomizeFrame extends JFrame implements ActionListener{
 		lblBasic.setBounds(0, 20, WIDTH/2, 50);
 		basic.add(lblBasic);
 		
-		lblName = new JLabel("Enter a name for Venn Diagram: ");
-		lblName.setBounds(20, 70, 200, 50);
+		lblName = new JLabel("Enter a name for the Venn Diagram: ");
+		lblName.setBounds(20, 70, 230, 50);
 		basic.add(lblName);
 		
 		txtName = new JTextField();
