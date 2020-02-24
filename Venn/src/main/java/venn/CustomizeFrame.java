@@ -174,7 +174,7 @@ public class CustomizeFrame extends JFrame implements ActionListener{
 		setVisible(true);
 		
 		//Welcome popup
-		JOptionPane.showMessageDialog(this, "Welcome to Venn Diagram Application!");
+//		JOptionPane.showMessageDialog(this, "Welcome to Venn Diagram Application!");
 
 	}
 
