@@ -18,12 +18,12 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class CustomizeFrame extends JFrame implements ActionListener{
-	private JButton btnBack, btnCreate,btnAdvance, btnColor;
-	private JTextField txtName;
-	private JLabel lblName, lblCircles, lblBasic, lblAdvance, lblFont, lblSize, lblColor;
-	private JSlider sldrCircles;
-	private JComboBox fontList, sizeList, colorList;
-	private JCheckBox boxUseAdvance;
+	public JButton btnBack, btnCreate,btnAdvance, btnColor;
+	public JTextField txtName;
+	public JLabel lblName, lblCircles, lblBasic, lblAdvance, lblFont, lblSize, lblColor;
+	public JSlider sldrCircles;
+	public JComboBox fontList, sizeList, colorList;
+	public JCheckBox boxUseAdvance;
 	private final int WIDTH = 800, HEIGHT = 400, NUM_CIRCLES_MIN = 2, NUM_CIRCLES_MAX = 7, NUM_CIRCLES_INIT = 2;
 	
 	public CustomizeFrame() {
@@ -52,8 +52,8 @@ public class CustomizeFrame extends JFrame implements ActionListener{
 		lblBasic.setBounds(0, 20, WIDTH/2, 50);
 		basic.add(lblBasic);
 		
-		lblName = new JLabel("Enter a name for Venn Diagram: ");
-		lblName.setBounds(20, 70, 200, 50);
+		lblName = new JLabel("Enter a name for the Venn Diagram: ");
+		lblName.setBounds(20, 70, 230, 50);
 		basic.add(lblName);
 		
 		txtName = new JTextField();
@@ -174,7 +174,7 @@ public class CustomizeFrame extends JFrame implements ActionListener{
 		setVisible(true);
 		
 		//Welcome popup
-		JOptionPane.showMessageDialog(this, "Welcome to Venn Diagram Application!");
+//		JOptionPane.showMessageDialog(this, "Welcome to Venn Diagram Application!");
 
 	}
 
@@ -184,7 +184,7 @@ public class CustomizeFrame extends JFrame implements ActionListener{
 		if(e.getSource() == btnCreate) {
 			Settings s = new Settings();
 			Settings.setName(txtName.getText());
-			Settings.setNumCircles(sldrCircles.getValue());
+			Settings.setNumCircles(2); ///////////////////////CHANGE IT LATER//////////////////
 			if(boxUseAdvance.isSelected()) {
 				String size = sizeList.getSelectedItem().toString();
 				String font = fontList.getSelectedItem().toString();
