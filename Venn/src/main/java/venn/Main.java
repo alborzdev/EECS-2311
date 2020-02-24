@@ -45,18 +45,18 @@ public class Main extends JPanel implements MouseListener {
 	private int numClicks; // the number of mouse clicks on the frame
 	private int addClicks = 0; //number of clicks on the "Add" button
 	private JButton btnAdd; // Add button to add more circles 
-	private JButton btnStats;
-	private JTextField txtNameYellow;
-	private JTextField txtNameBlue;
+	public JButton btnStats;
+	public JTextField txtNameYellow;
+	public JTextField txtNameBlue;
 	
-	private JTextField lblYellowCircleName;
-	private JTextField lblBlueCircleName;
+	public JTextField lblYellowCircleName;
+	public JTextField lblBlueCircleName;
 	
-	private JTextField lblInputYellowLeg;
-	private JTextField lblInputBlueLeg;
+	public JTextField lblInputYellowLeg;
+	public JTextField lblInputBlueLeg;
 	
-	private JTextField lblInputYellowCircle;
-	private JTextField lblInputBlueCircle;
+	public JTextField lblInputYellowCircle;
+	public JTextField lblInputBlueCircle;
 	
 	private JTextField lblInputYellowBlueCircle;
 	private JTextField lblInputNot;
@@ -99,10 +99,10 @@ public class Main extends JPanel implements MouseListener {
 		numClicks = 0;
 
 		// creates a new button on the frame
-		btnAdd = new JButton("ADD");
-		btnAdd.setBounds((WIDTH / 2) - 50, HEIGHT - 100, 100, 50); // sets the button to be in the middle of the frame
-		btnAdd.addMouseListener(this); // adds mouse listener to the button so mouse related actions can be performed
-		frame.add(btnAdd); // adds button to the frame
+		//btnAdd = new JButton("ADD");
+		//btnAdd.setBounds((WIDTH / 2) - 50, HEIGHT - 100, 100, 50); // sets the button to be in the middle of the frame
+		//btnAdd.addMouseListener(this); // adds mouse listener to the button so mouse related actions can be performed
+		//frame.add(btnAdd); // adds button to the frame
 		
 		btnStats = new JButton("Display Stats");
 		btnStats.setBounds(700, 50, 200, 50);

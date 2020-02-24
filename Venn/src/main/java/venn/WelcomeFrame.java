@@ -11,8 +11,8 @@ import javax.swing.JLabel;
 
 public class WelcomeFrame implements ActionListener {
 
-	private JButton btnContinue;
-	private JFrame frame;
+	public JButton btnContinue;
+	public JFrame frame;
 
 	public WelcomeFrame() {
 

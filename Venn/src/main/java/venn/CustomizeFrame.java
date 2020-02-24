@@ -18,12 +18,12 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class CustomizeFrame extends JFrame implements ActionListener{
-	private JButton btnBack, btnCreate,btnAdvance, btnColor;
-	private JTextField txtName;
-	private JLabel lblName, lblCircles, lblBasic, lblAdvance, lblFont, lblSize, lblColor;
-	private JSlider sldrCircles;
-	private JComboBox fontList, sizeList, colorList;
-	private JCheckBox boxUseAdvance;
+	public JButton btnBack, btnCreate,btnAdvance, btnColor;
+	public JTextField txtName;
+	public JLabel lblName, lblCircles, lblBasic, lblAdvance, lblFont, lblSize, lblColor;
+	public JSlider sldrCircles;
+	public JComboBox fontList, sizeList, colorList;
+	public JCheckBox boxUseAdvance;
 	private final int WIDTH = 800, HEIGHT = 400, NUM_CIRCLES_MIN = 2, NUM_CIRCLES_MAX = 7, NUM_CIRCLES_INIT = 2;
 	
 	public CustomizeFrame() {
@@ -184,7 +184,7 @@ public class CustomizeFrame extends JFrame implements ActionListener{
 		if(e.getSource() == btnCreate) {
 			Settings s = new Settings();
 			Settings.setName(txtName.getText());
-			Settings.setNumCircles(sldrCircles.getValue());
+			Settings.setNumCircles(2); ///////////////////////CHANGE IT LATER//////////////////
 			if(boxUseAdvance.isSelected()) {
 				String size = sizeList.getSelectedItem().toString();
 				String font = fontList.getSelectedItem().toString();
