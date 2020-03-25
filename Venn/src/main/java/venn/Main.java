@@ -195,7 +195,7 @@ public class Main extends JPanel implements MouseListener {
 	
 				lblYellowCircleName = new JTextField("Add Title");
 				lblYellowCircleName.setBounds((WIDTH / 3) + 40, HEIGHT / 2 - 135, 100, 30);
-				frame.add(lblYellowCircleName);
+				this.add(lblYellowCircleName);
 				
 				yellowLegendAdded = true;
 				yellowLegend = false;

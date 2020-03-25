@@ -29,7 +29,7 @@ public class WelcomeFrame implements ActionListener {
 		frame.getContentPane().add(lblWelcomeToThe);
 		
 		
-		JLabel lblLogo = new JLabel(new ImageIcon("/venn/StatVenn_Edited.png"));
+		JLabel lblLogo = new JLabel(new ImageIcon("Resources/StatVenn_Edited.png"));
 		lblLogo.setBounds(108, 181, 800, 400);
 		frame.add(lblLogo);
 		
