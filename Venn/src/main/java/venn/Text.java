@@ -18,18 +18,20 @@ public class Text extends JLabel {
 	
 private static class MouseHandler implements MouseListener, MouseMotionListener {
 	private JLabel lbl;
-	private int x, y;
+	private static int x, y;
 	public MouseHandler(JLabel lbl) {
 		this.lbl = lbl;
+		x = y = 0;
 	}
 	
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		// TODO Auto-generated method stub
-		int dx = e.getX() - x;
-		int dy = e.getY() - y;
-		System.out.println("HELLO");
+		int dx = e.getXOnScreen() - x;
+		int dy = e.getYOnScreen() - y;
 		this.lbl.setBounds(this.lbl.getX()+dx, this.lbl.getY()+dy, 100, 100);
+		x += dx;
+		y += dy;
 	}
 
 	@Override
@@ -47,9 +49,8 @@ private static class MouseHandler implements MouseListener, MouseMotionListener 
 	@Override
 	public void mousePressed(MouseEvent e) {
 		// TODO Auto-generated method stub
-		x = e.getX();
-		y = e.getY();
-		System.out.println("HELLO");
+		x = e.getXOnScreen();
+		y = e.getYOnScreen();
 	}
 
 	@Override

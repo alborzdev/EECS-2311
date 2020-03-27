@@ -52,6 +52,7 @@ public class Draw extends JPanel{
 
         MainFrame.CI.add(this.index,new CircleInfo(endX-50,endY-50,cimg, new Color(rr,rg,rb)));
         this.setBounds(endX-50, endY-50, w, h);
+        this.addMouseListener(new MouseHandler(this));
         this.addMouseMotionListener(new MouseHandler(this));
 		
         
@@ -74,7 +75,7 @@ public class Draw extends JPanel{
 	
 	private static class MouseHandler implements MouseListener, MouseMotionListener {
 		private Draw d;
-		private int x, y;
+		private static int x, y;
 		public MouseHandler(Draw d) {
 			this.d = d;
 			x = 0;

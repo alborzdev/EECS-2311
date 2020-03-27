@@ -11,12 +11,18 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
 
 public class MainFrame implements MouseListener{
-	public final static int WIDTH = 700, HEIGHT = 700; // size of the window/frame
+	public final static int WIDTH = 1366, HEIGHT = 768; // size of the window/frame
 
 	private JFrame frame; // declares frame
-	private JButton btnAdd, btnAddText;
+	private JTable jtable;
+	private JButton btnAdd, btnDel, btnEdit, btnAddText;
+	private JTextField delAddCircles, delAddText, txtAddText;
 	private JLayeredPane jlpane;
 	public static int PANE_INDEX = 2, INDEX = 0;
 	public static ArrayList<CircleInfo> CI;
@@ -36,9 +42,8 @@ public class MainFrame implements MouseListener{
 		CI = new ArrayList<CircleInfo>();
 
 		jlpane = new JLayeredPane();
-		jlpane.setPreferredSize(new Dimension(WIDTH/2,HEIGHT/2));
 		jlpane.setBorder(BorderFactory.createLineBorder(Color.black));
-		jlpane.setBounds(10, 10, WIDTH/2, HEIGHT/2);
+		jlpane.setBounds(10, 10, WIDTH-400, HEIGHT-100);
 		jlpane.setOpaque(true);
 		jlpane.setBackground(Color.white);
 		jlpane.addMouseListener(this);
@@ -46,23 +51,57 @@ public class MainFrame implements MouseListener{
 		
 		frame.add(jlpane);
 		
+		DefaultTableModel dtm = new DefaultTableModel();
+		dtm.addColumn("Name");
+		dtm.addColumn("Object Type");
+		Object[] o = new Object[17];
+		dtm.addRow(o);
+		jtable = new JTable(dtm);
+
+		JScrollPane jsp = new JScrollPane(jtable);
+		jsp.setBounds(WIDTH-400+20, 10, 300, 300-5);
+		jtable.setFillsViewportHeight(true);
+		frame.add(jsp);
 		
-		
-		btnAdd = new JButton("ADD");
-		btnAdd.setBounds(WIDTH/4+100, HEIGHT-100,100,40);
+		btnAdd = new JButton("+");
+		btnAdd.setBounds(WIDTH-400+20, jsp.getY()+jsp.getHeight()+20,75,40);
 		btnAdd.addMouseListener(this);
 		frame.add(btnAdd);
 		
+		btnDel = new JButton("-");
+		btnDel.setBounds(btnAdd.getX()+75, jsp.getY()+jsp.getHeight()+20,75,40);
+		btnDel.addMouseListener(this);
+		frame.add(btnDel);
+		
+		btnEdit = new JButton("Edit");
+		btnEdit.setBounds(btnDel.getX()+75,jsp.getY()+jsp.getHeight()+20,75,40);
+		btnEdit.addMouseListener(this);
+		frame.add(btnEdit);
+		
+		delAddCircles = new JTextField();
+		delAddCircles.setBounds(btnEdit.getX()+75, jsp.getY()+jsp.getHeight()+20,75,40);
+		frame.add(delAddCircles);
+		
+		txtAddText = new JTextField();
+		txtAddText.setBounds(btnAdd.getX(), btnAdd.getY()+40+20,230,40);
+		frame.add(txtAddText);
+		
+		delAddText = new JTextField();
+		delAddText.setBounds(txtAddText.getX()+230+20, btnAdd.getY()+40+20, 50, 40);
+		frame.add(delAddText);
+
 		btnAddText = new JButton("ADD TEXT");
-		btnAddText.setBounds(btnAdd.getX()+100,HEIGHT-100,100,40);
+		btnAddText.setBounds(txtAddText.getX(),txtAddText.getY()+40+20,300,40);
 		btnAddText.addMouseListener(this);
 		frame.add(btnAddText);
+		
+
 
 		String[] layers = {"0","1","2","3","4","5","6","7","8"};
 		selectLayer = new JComboBox(layers);
 		selectLayer.setSelectedIndex(0);
 		selectLayer.setBounds(WIDTH-200, 100, 100, 40);
-		frame.add(selectLayer);
+		//frame.add(selectLayer);
 		
 	    jlpane.add(new Draw(100,100,INDEX),INDEX,0);
 		System.out.println("SIZE: "+ CI.size() + "CC: " + jlpane.getComponentCountInLayer(0));
@@ -71,8 +110,7 @@ public class MainFrame implements MouseListener{
 	    jlpane.add(new Draw(100,100,INDEX),INDEX,0);
 		System.out.println("SIZE: "+ CI.size() + "CC: " + jlpane.getComponentCountInLayer(0));
 		
-		frame.setVisible(true);
-		
+		frame.setVisible(true);		
 	}
 
 
