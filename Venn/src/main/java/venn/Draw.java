@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 
 public class Draw extends JPanel{
 	private int endX, endY, index;
+	static int SIZE = 600;
 	public Draw() {
 		
 		endX = 0;
@@ -26,10 +27,10 @@ public class Draw extends JPanel{
 		
 	}
 	
-	public Draw(int w, int h, int index) {
+	public Draw(int index) {
 		this.index = index;
 		this.setOpaque(false);
-		BufferedImage img = new BufferedImage(100,100,BufferedImage.TYPE_INT_ARGB);
+		BufferedImage img = new BufferedImage(SIZE,SIZE,BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d = img.createGraphics();
     	float rr = (float) (Math.random());
 		float rg = (float) (Math.random());
@@ -37,21 +38,27 @@ public class Draw extends JPanel{
 		int rand = (int) (Math.random() * 2);
 		System.out.printf("RR: %.2f RG: %.2f RB: %.2f\n",rr,rg,rb);
 		
-		BufferedImage cimg = new BufferedImage(100,100,BufferedImage.TYPE_INT_ARGB);
+		BufferedImage cimg = new BufferedImage(SIZE,SIZE,BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d1 = cimg.createGraphics();
-		g2d1.setClip(new Ellipse2D.Float(0,0,100,100));
-		g2d1.setColor(new Color(rr,rg,rb,0.5f));
-	    g2d1.fillOval(0, 0, 100, 100);
+		g2d1.setClip(new Ellipse2D.Float(0,0,SIZE,SIZE));
+		Color foreColor = new Color(rr,rg,rb,0.5f);
+		g2d1.setColor(foreColor);
+	    g2d1.fillOval(0, 0, SIZE, SIZE);
 	    g2d1.setColor(Color.black);
 	    g2d1.setStroke(new BasicStroke(2));
-	    g2d1.drawOval(0,0,100,100);
-	    g2d1.drawImage(img, 0, 0,100,100, null);
+	    g2d1.drawOval(0,0,SIZE,SIZE);
+	    g2d1.drawImage(img, 0, 0,SIZE,SIZE, null);
 	    
-	    endX = (MainFrame.WIDTH/4) + (int)(50*Math.cos( (2*Math.PI/MainFrame.PANE_INDEX)*MainFrame.INDEX ));
-		endY = (MainFrame.HEIGHT/4) - (int)(50*Math.sin( (2*Math.PI/MainFrame.PANE_INDEX)*MainFrame.INDEX));  // Note "-"
-
-        MainFrame.CI.add(this.index,new CircleInfo(endX-50,endY-50,cimg, new Color(rr,rg,rb)));
-        this.setBounds(endX-50, endY-50, w, h);
+	    int[] bounds = MainFrame.generateCircleBounds();
+	    endX = bounds[0]; //0 - X
+		endY = bounds[1]; //1 - Y
+		CircleInfo ci = new CircleInfo(2,SIZE,foreColor);
+		ci.setX(endX-(SIZE/2));
+		ci.setY(endY-(SIZE/2));
+		ci.setImage(cimg);
+		ci.setName("Circle"+this.index);
+        MainFrame.CI.add(this.index,ci);
+        this.setBounds(endX-(SIZE/2), endY-(SIZE/2), SIZE, SIZE);
         this.addMouseListener(new MouseHandler(this));
         this.addMouseMotionListener(new MouseHandler(this));
 		
@@ -64,8 +71,7 @@ public class Draw extends JPanel{
 
 		System.out.println("HEY "+ " Components: " + super.getComponentCount());
 		Graphics2D g2d = (Graphics2D) g;
-		//g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g2d.drawImage(MainFrame.CI.get(this.index).getImage(),0,0,100,100,null);
+		g2d.drawImage(MainFrame.CI.get(this.index).getImage(),0,0,SIZE,SIZE,null);
         
        g2d.dispose();
        g.dispose();
@@ -92,7 +98,7 @@ public class Draw extends JPanel{
 		public void mouseDragged(MouseEvent e) {
 			int dx = e.getX()-x;
 			int dy = e.getY()-y;
-			this.d.setBounds(this.d.getX()+dx, this.d.getY()+dy, 100, 100);
+			this.d.setBounds(this.d.getX()+dx, this.d.getY()+dy, Draw.SIZE, Draw.SIZE);
 		}
 
 		@Override
