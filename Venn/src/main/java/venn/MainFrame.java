@@ -324,6 +324,24 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 		sliderStroke.setPaintTicks(true);
 		sliderStroke.setSnapToTicks(true);
 		sliderStroke.setBounds(0, lblStroke.getY()+lblStroke.getHeight()-10, 300, 50);
+		sliderStroke.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				// TODO Auto-generated method stub
+				int strokeSize = sliderStroke.getValue();
+				int[] indexes = jtable.getSelectedRows();
+				for(int i = 0; i < indexes.length; i++) {
+					int index = Integer.parseInt(jtable.getValueAt(indexes[i], 2).toString());
+					CircleInfo c = CI.get(index);
+					c.setStrokeSize(strokeSize);
+					c.updateImage();
+					CI.set(index, c);
+					jlpane.repaint();
+				}
+			}
+			
+		});
 		panelCustomizeCir.add(sliderStroke);
 		
 		
@@ -333,11 +351,34 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 		
 		sliderSize = new JSlider(JSlider.HORIZONTAL, SIZE_C_MIN, SIZE_C_MAX, SIZE_C_INIT);
 		sliderSize.setMajorTickSpacing(100);
-		sliderSize.setMinorTickSpacing(10);
+		sliderSize.setMinorTickSpacing(50);
 		sliderSize.setPaintLabels(true);
 		sliderSize.setPaintTicks(true);
 		sliderSize.setSnapToTicks(true);
 		sliderSize.setBounds(0, lblCSize.getY()+lblCSize.getHeight()-10, 300, 50);
+		sliderSize.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				// TODO Auto-generated method stub
+				int size = sliderSize.getValue();
+				int[] indexes = jtable.getSelectedRows();
+				for(int i = 0; i < indexes.length; i++) {
+					int index = Integer.parseInt(jtable.getValueAt(indexes[i], 2).toString());
+					//CI.get(index).setSize(size);
+					//CI.get(index).updateImage();
+					CircleInfo c = CI.get(index);
+					c.setSize(size);
+					Draw d = (Draw) jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[index];
+					d.size = size;
+					d.setOpaque(false);
+					d.setBounds(c.getX(), c.getY(), c.getSize(), c.getSize());
+					
+				}
+				jlpane.repaint();
+			}
+			
+		});
 		panelCustomizeCir.add(sliderSize);
 		
 		frame.add(panelCustomizeCir);
@@ -364,11 +405,13 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 		
 		//init stuff
 	    jlpane.add(new Draw(CINDEX),JLayeredPane.DEFAULT_LAYER,CINDEX);
+	    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX].addMouseListener(this);
 	    addRow(CINDEX,CIRCLE_TYPE);
 		System.out.println("SIZE: "+ CI.size() + "CC: " + jlpane.getComponentCountInLayer(0));
 	
 		CINDEX++;
 	    jlpane.add(new Draw(CINDEX),JLayeredPane.DEFAULT_LAYER,CINDEX);
+	    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX].addMouseListener(this);
 	    addRow(CINDEX,CIRCLE_TYPE);
 		System.out.println("SIZE: "+ CI.size() + "CC: " + jlpane.getComponentCountInLayer(0));
 		
@@ -394,16 +437,18 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 		for(CINDEX=0; CINDEX < jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER); CINDEX++) {
 			int[] xy = updateCircle(CINDEX);
-			jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX].setBounds(xy[0], xy[1], Draw.SIZE, Draw.SIZE);
+			Draw d = (Draw) jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX];
+			d.setBounds(xy[0], xy[1],d.size, d.size);
 		}
 		
 	}
 	
+	
 	public int[] updateCircle(int index) {
 		CircleInfo prevElem = CI.get(index);
 		int[] bounds = generateCircleBounds();
-		int newX = bounds[0]-(Draw.SIZE/2);
-		int newY = bounds[1]-(Draw.SIZE/2);
+		int newX = bounds[0]-(prevElem.getSize()/2);
+		int newY = bounds[1]-(prevElem.getSize()/2);
 		prevElem.setX(newX);
 		prevElem.setY(newY);
 		CI.set(index, prevElem);
@@ -418,6 +463,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			dtm.addRow(new Object[] {"Text"+index,type,index});
 		}
 	}
+	
 	
 	public void removeRow(int index) {
 		DefaultTableModel dtm = (DefaultTableModel) jtable.getModel();
@@ -507,6 +553,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
 		
+		
 		if(arg0.getSource() == btnAdd) {
 			for(int i = 0; i < getAddValue(); i++) {
 				if(PANE_INDEX < MAX_CIRCLES) {
@@ -516,6 +563,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 					}
 					updateBounds();
 					jlpane.add(new Draw(CINDEX),JLayeredPane.DEFAULT_LAYER,CINDEX);
+				    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX].addMouseListener(this);
 					DefaultTableModel dtm = (DefaultTableModel) jtable.getModel();
 					addRow(CINDEX,CIRCLE_TYPE);
 				}
@@ -533,7 +581,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 							if(PANE_INDEX == 2 || PANE_INDEX == 3) {
 								Draw.SIZE += 145;
 							}
-							int index = Integer.parseInt((String)jtable.getValueAt(i, 2).toString());
+							int index = Integer.parseInt((String)jtable.getValueAt(selIndexes[i], 2).toString());
 							Component c = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[index];
 							jlpane.remove(c);
 							updateBounds();
@@ -541,7 +589,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 						}
 					}else if(jtable.getValueAt(i, 1).equals(TEXT_TYPE)) {
 						TINDEX--;
-						int index = Integer.parseInt(jtable.getValueAt(i, 2).toString());
+						int index = Integer.parseInt(jtable.getValueAt(selIndexes[i], 2).toString());
 						Component c = jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index];
 						jlpane.remove(c);
 						removeRow(i);
@@ -553,12 +601,15 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 		}else if(arg0.getSource() == btnAddText) {
 			if(txtAddText.getText().length() > 0) {
 				for(int i = 0; i < getAddValue(); i++) {
-					TINDEX++;
+					
 					addRow(TINDEX,TEXT_TYPE);
 					Object[] data = {fontList.getSelectedItem(),sizeList.getSelectedItem(),btnForeColor.getBackground(),
-							btnBackColor.getBackground(),checkOpaque.isSelected()};
+							btnBackColor.getBackground(),checkOpaque.isSelected(), txtAddText.getText()};
 					
 					jlpane.add(new Text(TINDEX,data),JLayeredPane.MODAL_LAYER);
+				    jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[TINDEX].addMouseListener(this);
+
+					TINDEX++;
 				}
 			}
 			
@@ -579,7 +630,34 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 	@Override
 	public void mousePressed(MouseEvent arg0) {
-
+		for(int k = 0; k < jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER); k++) {
+			if(jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[k] == arg0.getSource()) {
+				for(int j = 0; j < jtable.getRowCount(); j++) {
+					int index = Integer.parseInt(jtable.getValueAt(j, 2).toString());
+					String type = jtable.getValueAt(j, 1).toString();
+					
+					if(k == index && type == CIRCLE_TYPE) {
+						jtable.setRowSelectionInterval(j, j);
+						break;
+					}
+				}
+			}
+		}
+		
+		for(int k = 0; k < jlpane.getComponentCountInLayer(JLayeredPane.MODAL_LAYER); k++) {
+			if(jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[k] == arg0.getSource()) {
+				for(int j = 0; j < jtable.getRowCount(); j++) {
+					int index = Integer.parseInt(jtable.getValueAt(j, 2).toString());
+					String type = jtable.getValueAt(j, 1).toString();
+					
+					if(k == index && type == TEXT_TYPE) {
+						jtable.setRowSelectionInterval(j, j);
+						break;
+					}
+				}
+			}
+		}
+		
 	}
 
 	@Override

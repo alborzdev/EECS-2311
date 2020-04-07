@@ -1,16 +1,21 @@
 package venn;
+import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 
 public class CircleInfo {
 	private String name;
-	private int x, y, strokeSize, size;
+	private int x, y, strokeSize, size, prevSize;
 	private Color c;
 	private BufferedImage img;
 	
 	public CircleInfo(int stroke, int size, Color c) {
 		this.strokeSize = stroke;
 		this.size = size;
+		this.prevSize = size;
 		this.c = c;
 		this.img = null;
 		this.x = this.y = 0;
@@ -22,6 +27,7 @@ public class CircleInfo {
 	}
 	
 	public void setSize(int size) {
+		this.prevSize = this.size;
 		this.size = size;
 	}
 	
@@ -74,5 +80,25 @@ public class CircleInfo {
 		return this.img;
 	}
 	
-	
+	public void updateImage() {
+		BufferedImage img = new BufferedImage(this.size,this.size,BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = img.createGraphics();
+		
+		BufferedImage cimg = new BufferedImage(this.size,this.size,BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d1 = cimg.createGraphics();
+		g2d1.setClip(new Ellipse2D.Float(0,0,this.size,this.size));
+		Color foreColor = new Color(this.c.getRed(),this.c.getGreen(),this.c.getBlue(),127);
+		g2d1.setColor(foreColor);
+	    g2d1.fillOval(0, 0, this.size, this.size);
+	    g2d1.setColor(Color.black);
+	    g2d1.setStroke(new BasicStroke(this.strokeSize));
+	    g2d1.drawOval(0+strokeSize/2,0+strokeSize/2,this.size-strokeSize,this.size-strokeSize);
+	    g2d1.drawImage(img, 0, 0,this.size,this.size, null);
+		
+	    this.img = cimg;
+		
+		g2d.dispose();
+		g2d1.dispose();
+	}
+		
 }

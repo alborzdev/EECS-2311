@@ -19,7 +19,8 @@ import javax.swing.JPanel;
 
 public class Draw extends JPanel{
 	private int endX, endY, index;
-	static int SIZE = 600;
+	public int size = 600;
+	public static int SIZE=600;
 	public Draw() {
 		
 		endX = 0;
@@ -46,7 +47,7 @@ public class Draw extends JPanel{
 	    g2d1.fillOval(0, 0, SIZE, SIZE);
 	    g2d1.setColor(Color.black);
 	    g2d1.setStroke(new BasicStroke(2));
-	    g2d1.drawOval(0,0,SIZE,SIZE);
+	    g2d1.drawOval(0+1,0+1,SIZE-2,SIZE-2);
 	    g2d1.drawImage(img, 0, 0,SIZE,SIZE, null);
 	    
 	    int[] bounds = MainFrame.generateCircleBounds();
@@ -71,7 +72,8 @@ public class Draw extends JPanel{
 
 		System.out.println("HEY "+ " Components: " + super.getComponentCount());
 		Graphics2D g2d = (Graphics2D) g;
-		g2d.drawImage(MainFrame.CI.get(this.index).getImage(),0,0,SIZE,SIZE,null);
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g2d.drawImage(MainFrame.CI.get(this.index).getImage(),0,0,MainFrame.CI.get(index).getSize(),MainFrame.CI.get(index).getSize(),null);
         
        g2d.dispose();
        g.dispose();
