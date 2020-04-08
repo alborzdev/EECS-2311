@@ -35,7 +35,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 	public static int PANE_INDEX = 2, CINDEX = 0, TINDEX = 0; //CINDEX = circle index, TINDEX = text index
 	public static ArrayList<CircleInfo> CI;
 	public static ArrayList<TextInfo> TI;
-	private JComboBox selectLayer, sizeList, fontList;
+	private JComboBox selectMode, sizeList, fontList;
 	private JColorChooser jcc;
 	public static boolean DRAGGING = false;
 	public boolean btnForeClicked = true, btnCColorClicked = false;
@@ -219,21 +219,23 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 		btnAddText.addMouseListener(this);
 		frame.add(btnAddText);
 		
+		JLabel lblMode = new JLabel("Mode: ");
+		lblMode.setBounds(btnAddText.getX()+5, btnAddText.getY()+btnAddText.getHeight(), 45, 40);
+		frame.add(lblMode);
 
-
-		String[] layers = {"0","1","2","3","4","5","6","7","8"};
-		selectLayer = new JComboBox(layers);
-		selectLayer.setSelectedIndex(0);
-		selectLayer.setBounds(WIDTH-200, 100, 100, 40);
-		//frame.add(selectLayer);
+		String[] modes = {"Manual","Automatic Placement and Resizing","Automatic Placement and No Resizing"};
+		selectMode = new JComboBox(modes);
+		selectMode.setSelectedIndex(1);
+		selectMode.setBounds(lblMode.getX()+lblMode.getWidth(), lblMode.getY(), 250, 40);
+		frame.add(selectMode);
 		
 /////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////CUSTOMIZE TEXT PANEL RELATED STUFF//////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 		
-		int panelCusHeight = jlpane.getY()+jlpane.getHeight()-(btnAddText.getY()+btnAddText.getHeight()+20);
+		int panelCusHeight = jlpane.getY()+jlpane.getHeight()-(selectMode.getY()+selectMode.getHeight()+20);
 		panelCustomizeText = new JPanel();
-		panelCustomizeText.setBounds(btnAddText.getX(), btnAddText.getY()+40+20,300, panelCusHeight);
+		panelCustomizeText.setBounds(lblMode.getX(), selectMode.getY()+selectMode.getHeight()+20,300, panelCusHeight);
 		panelCustomizeText.setLayout(null);
 		panelCustomizeText.setVisible(false);
 		
@@ -297,7 +299,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 ///////////////////////////////////////////////////////////////////////////////////////////////
 		
 		panelCustomizeCir = new JPanel();
-		panelCustomizeCir.setBounds(btnAddText.getX(), btnAddText.getY()+40+20,300, panelCusHeight);
+		panelCustomizeCir.setBounds(lblMode.getX(), selectMode.getY()+selectMode.getHeight()+20,300, panelCusHeight);
 		panelCustomizeCir.setLayout(null);
 		panelCustomizeCir.setVisible(false);
 		
@@ -388,7 +390,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 		panelCustomizeMsg = new JPanel();
-		panelCustomizeMsg.setBounds(btnAddText.getX(), btnAddText.getY()+40+20,300, panelCusHeight);
+		panelCustomizeMsg.setBounds(lblMode.getX(), selectMode.getY()+selectMode.getHeight()+20,300, panelCusHeight);
 		panelCustomizeMsg.setLayout(null);
 		panelCustomizeMsg.setVisible(true);
 		
@@ -697,11 +699,51 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			dialog.setVisible(true);
 		}else {
 			if(btnCColorClicked) {
-				btnCColor.setBackground(jcc.getColor());
+				Color c = jcc.getColor();
+				btnCColor.setBackground(c);
+				int[] indexes = jtable.getSelectedRows();
+				for(int i = 0; i < indexes.length; i++) {
+					int index = Integer.parseInt(jtable.getValueAt(indexes[i], 2).toString());
+					String type = jtable.getValueAt(indexes[i], 1).toString();
+					
+					if(type.equals(CIRCLE_TYPE)) {
+						CI.get(index).setColor(c);
+						CI.get(index).updateImage();
+						jlpane.repaint();
+					}
+					
+				}
 			}else if(btnForeClicked) {
-				btnForeColor.setBackground(jcc.getColor());
+				Color c = jcc.getColor();
+				btnForeColor.setBackground(c);
+				int[] indexes = jtable.getSelectedRows();
+				for(int i = 0; i < indexes.length; i++) {
+					int index = Integer.parseInt(jtable.getValueAt(indexes[i], 2).toString());
+					String type = jtable.getValueAt(indexes[i], 1).toString();
+					
+					if(type.equals(TEXT_TYPE)) {
+						TI.get(index).setForeColor(c);
+						jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index].setForeground(c);
+						jlpane.repaint();
+					}
+					
+				}
+
 			}else {
-				btnBackColor.setBackground(jcc.getColor());
+				Color c = jcc.getColor();
+				btnBackColor.setBackground(c);
+				int[] indexes = jtable.getSelectedRows();
+				for(int i = 0; i < indexes.length; i++) {
+					int index = Integer.parseInt(jtable.getValueAt(indexes[i], 2).toString());
+					String type = jtable.getValueAt(indexes[i], 1).toString();
+					
+					if(type.equals(TEXT_TYPE)) {
+						TI.get(index).setBackColor(c);
+						jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index].setBackground(c);
+						jlpane.repaint();
+					}
+					
+				}
 			}
 		}
 	}
@@ -761,17 +803,16 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			
 				if(isSameType(CIRCLE_TYPE)) {
 					if(jtable.getSelectedRowCount() > 1) {
-						btnCColor.setBackground(Color.BLACK);
+						setProperties(CIRCLE_TYPE, VALUE_DEFAULT);
 					}else {
-						//btnCColor.setBackground(bg);
+						setProperties(CIRCLE_TYPE, VALUE_CUSTOMIZE);
 					}
 					switchPanel(1);
 				}else if(isSameType(TEXT_TYPE)){
 					if(jtable.getSelectedRowCount() > 1) {
-						btnForeColor.setBackground(Color.BLACK);
-						btnBackColor.setBackground(Color.BLACK);
+						setProperties(TEXT_TYPE, VALUE_DEFAULT);
 					}else {
-						//btnCColor.setBackground(bg);
+						setProperties(TEXT_TYPE, VALUE_CUSTOMIZE);
 					}
 					switchPanel(0);
 				}else if(isSameType(PANEL_TYPE)) {
