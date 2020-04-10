@@ -85,32 +85,93 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 ///////////////////////////////////////////////////////////////////////////////////////////////
 			
 		JMenuBar jmb = new JMenuBar();
-		//jmb.addKeyListener(this);
 		
 		JMenu menuFile = new JMenu("File");
-		menuFile.addActionListener(this);
-		//menuFile.addKeyListener(this);
 		JMenu menuHelp = new JMenu("Help");
-		menuHelp.addActionListener(this);
-		//menuHelp.addKeyListener(this);
 		
-		JMenuItem itemOpen = new JMenuItem("Open");
-		itemOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK));
+		JMenuItem itemOpen = new JMenuItem();
+		Action open = new AbstractAction("Open") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.exit(0);
+			}
+			
+		};
+		open.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK));
+
+		itemOpen.setAction(open);
 		
-		JMenuItem itemSave = new JMenuItem("Save");
-		itemSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+		JMenuItem itemSave = new JMenuItem();
+		Action save = new AbstractAction("Save") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.exit(0);
+			}
+			
+		};
+		save.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+
+		itemSave.setAction(save);
 		
-		JMenuItem itemSaveAs = new JMenuItem("SaveAs");
-		itemSaveAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK));
+		JMenuItem itemSaveAs = new JMenuItem();
+		Action saveas = new AbstractAction("SaveAs") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.exit(0);
+			}
+			
+		};
+		saveas.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK+ActionEvent.ALT_MASK));
+
+		itemSaveAs.setAction(saveas);
 		
-		JMenuItem itemClose = new JMenuItem("Close");
-		itemClose.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK));
+		JMenuItem itemClose = new JMenuItem();
+		Action close = new AbstractAction("Close") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.exit(0);
+			}
+			
+		};
+		close.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK));
+
+		itemClose.setAction(close);
 		
-		JMenuItem itemAbout = new JMenuItem("About");
-		itemAbout.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK));
+		JMenuItem itemAbout = new JMenuItem();
+		Action about = new AbstractAction("About") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.exit(0);
+			}
+			
+		};
+		about.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK));
+
+		itemAbout.setAction(about);
 		
-		JMenuItem itemSearch = new JMenuItem("Search");
-		itemSearch.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK));
+		JMenuItem itemSearch = new JMenuItem();
+		Action search = new AbstractAction("Search") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.exit(0);
+			}
+			
+		};
+		search.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK));
+
+		itemSearch.setAction(search);
 
 		
 		menuFile.add(itemOpen);
@@ -221,7 +282,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 			@Override
 			public void focusGained(FocusEvent e) {
-
+				jtable.clearSelection();
 				switchPanel(0);
 				setProperties(TEXT_TYPE,VALUE_DEFAULT);
 				
@@ -299,11 +360,12 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 						lbl.setText(txtEditText.getText());
 						lbl.setSize(lbl.getPreferredSize());
 						TI.get(index).setText(txtEditText.getText());
-					}else if (type.equals(TEXT_TYPE)) {
+					}else if (type.equals(TEXT_TYPE) && txtEditText.getText().length() == 0) {
 						 Runnable doHighlight = new Runnable() {
 						        @Override
 						        public void run() {
-						            txtEditText.setText(TI.get(index).getText());
+									int index2 = Integer.parseInt(jtable.getValueAt(jtable.getSelectedRow(), 2).toString());
+						            txtEditText.setText(TI.get(index2).getText());
 						        }
 						    };       
 						    SwingUtilities.invokeLater(doHighlight);
@@ -671,6 +733,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 				System.out.println("HELLO");
 			}else if(t.equals(TEXT_TYPE)) {
 				txtEditText.setEnabled(false);
+				txtEditText.setText("");
 				btnForeColor.setBackground(Color.black);
 				btnBackColor.setBackground(Color.black);
 				Font f = new Font("SansSerif",Font.PLAIN,12);
@@ -691,7 +754,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 				txtEditText.setText(TI.get(index).getText());
 				btnForeColor.setBackground(TI.get(index).getForeColor());
 				btnBackColor.setBackground(TI.get(index).getBackColor());
-				Font f = new Font("SansSerif",Font.PLAIN,12);
+				Font f = TI.get(index).getFont();
 				String[] arr = fontToString(f);
 				btnFont.setText(arr[0]+", "+arr[1]+", " + Integer.parseInt(arr[2]));
 				checkOpaque.setSelected(TI.get(index).isOpaque());
@@ -801,6 +864,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 						System.out.println("TEXT_TYPE");
 						TINDEX--;
 						int index = Integer.parseInt(jtable.getValueAt(selIndexes[i], 2).toString());
+						TI.remove(index);
 						Component c = jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index];
 						jlpane.remove(c);
 						removeRow(selIndexes[i]);
@@ -811,7 +875,6 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			}
 		}else if(arg0.getSource() == btnAddText) {
 			if(txtAddText.getText().length() > 0) {
-				switchPanel(2);
 				for(int i = 0; i < getAddValue(); i++) {
 					
 					addRow(TINDEX,TEXT_TYPE);
@@ -827,6 +890,9 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 				    jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[TINDEX].addMouseListener(this);
 					TINDEX++;
 				}
+				txtAddText.setText("");
+				switchPanel(2);
+				setProperties(TEXT_TYPE,VALUE_DEFAULT);
 			}
 			
 		}
@@ -910,7 +976,13 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 						JLabel lbl = (JLabel) jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index];
 						lbl.setSize(500, 500);
 						lbl.setFont(newF);
-						lbl.setSize(lbl.getPreferredSize());
+						if(newF.getStyle() == 2 || newF.getStyle() == 3) {
+							Dimension d = lbl.getPreferredSize();
+							lbl.setSize((int)d.getWidth()+5,(int)d.getHeight());
+						}else {
+							lbl.setSize(lbl.getPreferredSize());
+						}
+						
 						TI.get(index).setFont(newF);
 					}
 				}

@@ -12,6 +12,7 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 import javax.swing.DebugGraphics;
 import javax.swing.JComponent;
@@ -19,6 +20,7 @@ import javax.swing.JPanel;
 
 public class Draw extends JPanel{
 	private int endX, endY;
+	public static ArrayList<Color> colors;
 	public int index;
 	public int size = 600;
 	public static int SIZE=600;
@@ -26,24 +28,33 @@ public class Draw extends JPanel{
 		
 		endX = 0;
 		endY = 0;
+		colors = new ArrayList<>();
 		
 	}
 	
 	public Draw(int index) {
+		colors = new ArrayList<>();
+		
 		this.index = index;
 		this.setOpaque(false);
 		BufferedImage img = new BufferedImage(SIZE,SIZE,BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d = img.createGraphics();
-    	float rr = (float) (Math.random());
-		float rg = (float) (Math.random());
-		float rb = (float) (Math.random());
-		int rand = (int) (Math.random() * 2);
-		System.out.printf("RR: %.2f RG: %.2f RB: %.2f\n",rr,rg,rb);
+    	
 		
 		BufferedImage cimg = new BufferedImage(SIZE,SIZE,BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d1 = cimg.createGraphics();
 		g2d1.setClip(new Ellipse2D.Float(0,0,SIZE,SIZE));
-		Color foreColor = new Color(rr,rg,rb,0.5f);
+		
+		Color foreColor;
+		do {
+		float rr = (float) (Math.random());
+		float rg = (float) (Math.random());
+		float rb = (float) (Math.random());
+		System.out.printf("RR: %.2f RG: %.2f RB: %.2f\n",rr,rg,rb);
+		foreColor = new Color(rr,rg,rb,0.5f);
+		}while(colors.contains(foreColor));
+		
+		colors.add(foreColor);
 		g2d1.setColor(foreColor);
 	    g2d1.fillOval(0, 0, SIZE, SIZE);
 	    g2d1.setColor(Color.black);
