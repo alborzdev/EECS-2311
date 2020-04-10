@@ -1,17 +1,18 @@
 package venn;
 
 import java.awt.Color;
+import java.awt.Font;
 
 public class TextInfo {
-	private String text,font,size;
+	private Font font;
+	private String text;
 	private Color foreColor, backColor;
 	private boolean isOpaque;
 	
-	public TextInfo(String text, Color foreColor) {
+	public TextInfo(String text) {
 		this.text = text;
-		this.foreColor = foreColor;
-		this.font="default";
-		this.size="default";
+		this.foreColor = Color.black;
+		this.font= new Font("SansSerif",Font.PLAIN,12);
 		this.isOpaque = false;
 	}
 
@@ -23,22 +24,15 @@ public class TextInfo {
 		this.text = text;
 	}
 
-	public String getFont() {
+	public Font getFont() {
 		return font;
 	}
 
-	public void setFont(String font) {
+	public void setFont(Font font) {
 		this.font = font;
 	}
 
-	public String getSize() {
-		return size;
-	}
-
-	public void setSize(String size) {
-		this.size = size;
-	}
-
+	
 	public Color getForeColor() {
 		return foreColor;
 	}

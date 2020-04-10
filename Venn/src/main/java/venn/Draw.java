@@ -18,7 +18,8 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 public class Draw extends JPanel{
-	private int endX, endY, index;
+	private int endX, endY;
+	public int index;
 	public int size = 600;
 	public static int SIZE=600;
 	public Draw() {
@@ -100,7 +101,7 @@ public class Draw extends JPanel{
 		public void mouseDragged(MouseEvent e) {
 			int dx = e.getX()-x;
 			int dy = e.getY()-y;
-			this.d.setBounds(this.d.getX()+dx, this.d.getY()+dy, Draw.SIZE, Draw.SIZE);
+			this.d.setBounds(this.d.getX()+dx, this.d.getY()+dy, d.size, d.size);
 		}
 
 		@Override
