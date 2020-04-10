@@ -1,15 +1,22 @@
 package venn;
 
+import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
+import java.awt.Robot;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -17,6 +24,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
 public class MainFrame implements MouseListener, KeyListener, ActionListener, ListSelectionListener{
@@ -109,7 +118,41 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				System.exit(0);
+				BufferedImage saveImage = null;
+				try {
+					saveImage = new Robot().createScreenCapture(jlpane.getBounds());
+				} catch (AWTException e2) {
+					// TODO Auto-generated catch block
+					e2.printStackTrace();
+				}
+				Graphics2D g2d = saveImage.createGraphics();
+				jlpane.paint(g2d);
+				JFileChooser jfc = new JFileChooser();
+				String desktop = System.getProperty("user.home") + "/Desktop";
+
+				jfc.setDialogTitle("Choose a destination directory");
+				
+				FileFilter jpegFilter = new CustomFilter(".jpeg", "JPEG");
+				FileFilter pngFilter = new CustomFilter(".png", "PNG");
+				
+				jfc.addChoosableFileFilter(jpegFilter);
+				jfc.addChoosableFileFilter(pngFilter);
+				jfc.setAcceptAllFileFilterUsed(false);
+				jfc.setCurrentDirectory(new File(desktop));
+				int response = jfc.showSaveDialog(frame);
+				
+				
+				if(response == JFileChooser.APPROVE_OPTION) {
+					File savePath = jfc.getSelectedFile();
+					String type = (jfc.getFileFilter() == jpegFilter)? "jpeg" : "png";
+					System.out.println(jfc.getSelectedFile().getPath() + " (*." + type + ")");
+					try {
+						ImageIO.write(saveImage,type,new File(savePath.getAbsolutePath()+"."+type));
+						System.exit(0);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				}
 			}
 			
 		};
