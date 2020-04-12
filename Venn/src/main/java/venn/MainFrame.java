@@ -37,6 +37,8 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
+import com.google.common.io.Files;
+
 public class MainFrame implements MouseListener, KeyListener, ActionListener, ListSelectionListener{
 	public final static int WIDTH = 1366, HEIGHT = 768; // size of the window/frame
 	private final int MIN_CIRCLES = 2, MAX_CIRCLES = 7;
@@ -77,13 +79,88 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 ///////////////////////////////////////////////////////////////////////////////////////////////
 		frame = new JFrame("Customizable Venn Diagram"); // inside "" is the name for the window/frame
 		frame.setSize(WIDTH, HEIGHT); // sets the frame to have size of 500 by 500
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // closes the frame when x button is clicked (top right															// button)
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // closes the frame when x button is clicked (top right															// button)
 		frame.setLocationRelativeTo(null);// sets the location of the frame to be in the middle.
 		frame.setResizable(false); // makes the frame not resizable (constant size for frame)
 		frame.setLayout(null); // sets absolute layout for the frame, so when adding stuff you have to set					// x,y,width, and height.
 		//frame.add(this); // adds JPanel to the frame
 		frame.addMouseListener(this); // adds mouse listener to the frame so mouse related actions can be performed
-		frame.getContentPane().addKeyListener(this);
+		frame.addWindowListener(new WindowListener() {
+
+			@Override
+			public void windowOpened(WindowEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				// TODO Auto-generated method stub
+				int choice = JOptionPane.showConfirmDialog(frame, "Do you want to save your changes?", "Save Changes", JOptionPane.YES_NO_CANCEL_OPTION);
+			
+				if(choice == JOptionPane.YES_OPTION) {
+					
+					BufferedImage saveImage = null;
+					try {
+						saveImage = new Robot().createScreenCapture(jlpane.getBounds());
+					} catch (AWTException e2) {
+						// TODO Auto-generated catch block
+						e2.printStackTrace();
+					}
+					Graphics2D g2d = saveImage.createGraphics();
+					g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+					jlpane.paint(g2d);
+					
+					if(! new File(savePath).exists()) {
+						savePath = "";
+					}
+					
+					if(savePath == "") {
+						initiateChoosingDirectory(saveImage);
+					}else {
+						String type = savePath.substring(savePath.lastIndexOf(".")+1);
+						File path = new File(savePath);
+						
+						saveImage(saveImage,type,path);
+					}
+					
+					System.exit(0);
+				}else if(choice == JOptionPane.NO_OPTION) {
+					System.exit(0);
+				}
+			}
+
+			@Override
+			public void windowClosed(WindowEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowActivated(WindowEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
 		//try {
 			//UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
 			try {
@@ -153,7 +230,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 					if(new File(path.getParentFile().getAbsolutePath()+"/"+name+"C.txt").exists()) {
 						if(new File(path.getParentFile().getAbsolutePath()+"/"+name+"T.txt").exists()) {
 							
-							int choice = JOptionPane.showConfirmDialog(frame, "Do you want to save the file?", "Save File Confirmation", JOptionPane.YES_NO_OPTION);
+							int choice = JOptionPane.showConfirmDialog(frame, "Do you want to save your changes?", "Save Changes", JOptionPane.YES_NO_OPTION);
 							
 							if(choice == JOptionPane.YES_OPTION) {
 								BufferedImage saveImage = null;
@@ -166,6 +243,10 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 								Graphics2D g2d = saveImage.createGraphics();
 								g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 								jlpane.paint(g2d);
+								
+								if(! new File(savePath).exists()) {
+									savePath = "";
+								}
 								
 								if(savePath == "") {
 									initiateChoosingDirectory(saveImage);
@@ -218,6 +299,10 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 				Graphics2D g2d = saveImage.createGraphics();
 				g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 				jlpane.paint(g2d);
+				
+				if(! new File(savePath).exists()) {
+					savePath = "";
+				}
 				
 				if(savePath == "") {
 					initiateChoosingDirectory(saveImage);
@@ -781,10 +866,16 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			String type = (jfc.getFileFilter() == jpegFilter)? "jpeg" : "png";
 			//create a path so that files are inside "VennDiagramImages" folder
 			File dirCreate = new File(path.getParentFile().getAbsolutePath()+"/VennDiagramImages");
-			if(!dirCreate.exists()) {
-				dirCreate.mkdir();
+			if(!path.getParentFile().exists() || !path.getParentFile().getName().equals("VennDiagramImages")) {
+				if(!dirCreate.exists()) {
+					dirCreate.mkdir();
+				}
+				savePath = dirCreate.getAbsolutePath()+"/"+path.getName()+"."+type;
+
+			}else {
+				savePath = path.getParentFile().getAbsolutePath()+"/"+path.getName()+"."+type;
 			}
-			savePath = dirCreate.getAbsolutePath()+"/"+path.getName()+"."+type;
+			
 			System.out.println(jfc.getSelectedFile().getPath() + " (*." + type + ")");
 			saveImage(saveImage,type,new File(savePath));
 		}
