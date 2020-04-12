@@ -9,7 +9,20 @@ import java.awt.event.MouseMotionListener;
 import javax.swing.JLabel;
 
 public class Text extends JLabel {
-
+	
+	public Text(int index) {
+		TextInfo ti = MainFrame.TI.get(index);
+		this.setText(ti.getText());
+		this.setFont(ti.getFont());
+		this.setOpaque(ti.isOpaque());
+		this.setForeground(ti.getForeColor());
+		this.setBackground(ti.getBackColor());
+		
+		this.addMouseListener(new MouseHandler(this));
+		this.addMouseMotionListener(new MouseHandler(this));
+		this.setBounds(MainFrame.WIDTH/4-50, MainFrame.HEIGHT/4-50, 9*ti.getText().length(),40);
+	}
+	
 	public Text(int index,Object[] data) {
 		//data array has 5 elements
 		//0-font, 1-forecolor, 2-backcolor, 3-opaqueness, 4-text

@@ -7,11 +7,20 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
+import java.awt.RenderingHints;
 import java.awt.Robot;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.Externalizable;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +40,7 @@ import javax.swing.table.DefaultTableModel;
 public class MainFrame implements MouseListener, KeyListener, ActionListener, ListSelectionListener{
 	public final static int WIDTH = 1366, HEIGHT = 768; // size of the window/frame
 	private final int MIN_CIRCLES = 2, MAX_CIRCLES = 7;
+	private static final String MODE_NEW = "New", MODE_OPEN = "Open";
 	private final String CIRCLE_TYPE = "Circle", TEXT_TYPE = "Text", PANEL_TYPE = "PANEL"; //PANEL_TYPE is the background jlayeredpanel
 	private final String VALUE_DEFAULT = "Default", VALUE_CUSTOMIZE = "Customize";
 	private final int SIZE_C_MIN = 100, SIZE_C_MAX = 600, SIZE_C_INIT = 600, SIZE_S_MIN = 0, SIZE_S_MAX = 10, SIZE_S_INIT = 2;
@@ -54,8 +64,13 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 	private JFontChooser jfc;
 	public static boolean DRAGGING = false;
 	public boolean btnForeClicked = true, btnCColorClicked = false, btnFontClicked = false;
-
+	private String savePath="";
+	
 	public MainFrame() {
+		this(MODE_NEW,"");
+	}
+	
+	public MainFrame(String mode, String path) {
 		
 /////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////FRAME RELATED STUFF/////////////////////////////////////////
@@ -104,7 +119,82 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				System.exit(0);
+				JFileChooser jfc = new JFileChooser();
+				String desktop = System.getProperty("user.home") + "/Desktop";
+				
+				
+				jfc.setDialogTitle("Choose a File to Open");
+					
+				FileFilter jpegFilter = new CustomFilter(".jpeg", "JPEG");
+				FileFilter pngFilter = new CustomFilter(".png", "PNG");
+					
+				jfc.addChoosableFileFilter(jpegFilter);
+				jfc.addChoosableFileFilter(pngFilter);
+				jfc.setAcceptAllFileFilterUsed(false);
+				jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				jfc.setCurrentDirectory(new File(desktop));
+				int response = jfc.showOpenDialog(frame);
+				
+				if(response == JFileChooser.APPROVE_OPTION) {
+					File path = jfc.getSelectedFile();
+					
+					String name = "";
+					
+					if(path.getName().indexOf(".jpeg")!= -1) {
+						name = path.getName().replaceAll(".jpeg", "");
+					}else if(path.getName().indexOf(".png")!= -1){
+						name = path.getName().replaceAll(".png", "");
+					}else {
+						name = path.getName();
+					}
+					
+					System.out.println("Selected File to Open: " + path);
+					
+					if(new File(path.getParentFile().getAbsolutePath()+"/"+name+"C.txt").exists()) {
+						if(new File(path.getParentFile().getAbsolutePath()+"/"+name+"T.txt").exists()) {
+							
+							int choice = JOptionPane.showConfirmDialog(frame, "Do you want to save the file?", "Save File Confirmation", JOptionPane.YES_NO_OPTION);
+							
+							if(choice == JOptionPane.YES_OPTION) {
+								BufferedImage saveImage = null;
+								try {
+									saveImage = new Robot().createScreenCapture(jlpane.getBounds());
+								} catch (AWTException e2) {
+									// TODO Auto-generated catch block
+									e2.printStackTrace();
+								}
+								Graphics2D g2d = saveImage.createGraphics();
+								g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+								jlpane.paint(g2d);
+								
+								if(savePath == "") {
+									initiateChoosingDirectory(saveImage);
+								}else {
+									String type = savePath.substring(savePath.lastIndexOf(".")+1);
+									File spath = new File(savePath);
+									
+									saveImage(saveImage,type,spath);
+								}
+							}
+							
+							new MainFrame(MODE_OPEN, path.getAbsolutePath());
+							
+							frame.dispose();
+
+							
+							
+						}else {
+							JOptionPane.showMessageDialog(frame, "Please select any file created by this program!",
+									"Error: One or more file doesn't exist!",JOptionPane.ERROR_MESSAGE);
+						}
+					}else {
+						JOptionPane.showMessageDialog(frame, "Please select any file created by this program!",
+									"Error: One or more file doesn't exist!",JOptionPane.ERROR_MESSAGE);
+					}
+					
+					
+				}
+
 			}
 			
 		};
@@ -126,32 +216,16 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 					e2.printStackTrace();
 				}
 				Graphics2D g2d = saveImage.createGraphics();
+				g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 				jlpane.paint(g2d);
-				JFileChooser jfc = new JFileChooser();
-				String desktop = System.getProperty("user.home") + "/Desktop";
-
-				jfc.setDialogTitle("Choose a destination directory");
 				
-				FileFilter jpegFilter = new CustomFilter(".jpeg", "JPEG");
-				FileFilter pngFilter = new CustomFilter(".png", "PNG");
-				
-				jfc.addChoosableFileFilter(jpegFilter);
-				jfc.addChoosableFileFilter(pngFilter);
-				jfc.setAcceptAllFileFilterUsed(false);
-				jfc.setCurrentDirectory(new File(desktop));
-				int response = jfc.showSaveDialog(frame);
-				
-				
-				if(response == JFileChooser.APPROVE_OPTION) {
-					File savePath = jfc.getSelectedFile();
-					String type = (jfc.getFileFilter() == jpegFilter)? "jpeg" : "png";
-					System.out.println(jfc.getSelectedFile().getPath() + " (*." + type + ")");
-					try {
-						ImageIO.write(saveImage,type,new File(savePath.getAbsolutePath()+"."+type));
-						System.exit(0);
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
+				if(savePath == "") {
+					initiateChoosingDirectory(saveImage);
+				}else {
+					String type = savePath.substring(savePath.lastIndexOf(".")+1);
+					File path = new File(savePath);
+					
+					saveImage(saveImage,type,path);
 				}
 			}
 			
@@ -166,7 +240,19 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				System.exit(0);
+				BufferedImage saveImage = null;
+				try {
+					saveImage = new Robot().createScreenCapture(jlpane.getBounds());
+				} catch (AWTException e2) {
+					// TODO Auto-generated catch block
+					e2.printStackTrace();
+				}
+				Graphics2D g2d = saveImage.createGraphics();
+				g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+				jlpane.paint(g2d);
+				
+				initiateChoosingDirectory(saveImage);
+				
 			}
 			
 		};
@@ -245,8 +331,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 		
 		jcc = new JColorChooser();
 		jfc = new JFontChooser();
-
-
+		
 		jlpane = new JLayeredPane();
 		jlpane.setBorder(BorderFactory.createLineBorder(Color.black));
 		jlpane.setBounds(10, 10, WIDTH-400, HEIGHT-100);
@@ -580,6 +665,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 						//CI.get(index).updateImage();
 						CircleInfo c = CI.get(index);
 						c.setSize(size);
+						c.updateImage();
 						Draw d = (Draw) jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[index];
 						d.size = size;
 						d.setOpaque(false);
@@ -612,22 +698,110 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 		frame.add(panelCustomizeMsg);
 		
 		
+/////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////INITIATE COMPONENT RELATED STUFF////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 		
+		if(mode.equals(MODE_OPEN)) {
+			savePath = path;
+			
+			ReadAndWriteObject rw = new ReadAndWriteObject(new File(savePath));
+			rw.read();
+			CI = rw.getCI();
+			TI = rw.getTI();
+			
+			PANE_INDEX = CI.size();
+			for(int i = 0; i < CI.size(); i++) {
+				jlpane.add(new Draw(i,mode),JLayeredPane.DEFAULT_LAYER,i);
+			    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[i].addMouseListener(this);
+			    addRow(i,CIRCLE_TYPE);
+			}
+			
+			TINDEX = TI.size();
+			for(int i = 0; i < TI.size(); i++) {
+				JLabel t = new Text(i);
+				if(t.getFont().getStyle() == 2 || t.getFont().getStyle() == 3) {
+					Dimension d = t.getPreferredSize();
+					t.setSize((int)d.getWidth()+5,(int)d.getHeight());
+				}else {
+					t.setSize(t.getPreferredSize());
+				}
+				jlpane.add(t,JLayeredPane.MODAL_LAYER,i);
+			    jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[i].addMouseListener(this);
+			    addRow(i,TEXT_TYPE);
+
+			}
+			
+		}else {
+			
+			//init stuff
+		    savePath = "";
+		    
+			jlpane.add(new Draw(CINDEX),JLayeredPane.DEFAULT_LAYER,CINDEX);
+		    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX].addMouseListener(this);
+		    addRow(CINDEX,CIRCLE_TYPE);
+			System.out.println("SIZE: "+ CI.size() + "CC: " + jlpane.getComponentCountInLayer(0));
 		
+			CINDEX++;
+		    jlpane.add(new Draw(CINDEX),JLayeredPane.DEFAULT_LAYER,CINDEX);
+		    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX].addMouseListener(this);
+		    addRow(CINDEX,CIRCLE_TYPE);
+			System.out.println("SIZE: "+ CI.size() + "CC: " + jlpane.getComponentCountInLayer(0));
 		
-		//init stuff
-	    jlpane.add(new Draw(CINDEX),JLayeredPane.DEFAULT_LAYER,CINDEX);
-	    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX].addMouseListener(this);
-	    addRow(CINDEX,CIRCLE_TYPE);
-		System.out.println("SIZE: "+ CI.size() + "CC: " + jlpane.getComponentCountInLayer(0));
-	
-		CINDEX++;
-	    jlpane.add(new Draw(CINDEX),JLayeredPane.DEFAULT_LAYER,CINDEX);
-	    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX].addMouseListener(this);
-	    addRow(CINDEX,CIRCLE_TYPE);
-		System.out.println("SIZE: "+ CI.size() + "CC: " + jlpane.getComponentCountInLayer(0));
+		}
 		
 		frame.setVisible(true);		
+	
+	
+	}
+	
+	
+	
+	public void initiateChoosingDirectory(BufferedImage saveImage) {
+		
+
+		JFileChooser jfc = new JFileChooser();
+		String desktop = System.getProperty("user.home") + "/Desktop";
+		
+		
+		jfc.setDialogTitle("Choose a destination directory");
+			
+		FileFilter jpegFilter = new CustomFilter(".jpeg", "JPEG");
+		FileFilter pngFilter = new CustomFilter(".png", "PNG");
+			
+		jfc.addChoosableFileFilter(jpegFilter);
+		jfc.addChoosableFileFilter(pngFilter);
+		jfc.setAcceptAllFileFilterUsed(false);
+		jfc.setCurrentDirectory(new File(desktop));
+		int response = jfc.showSaveDialog(frame);
+			
+			
+		if(response == JFileChooser.APPROVE_OPTION) {
+			File path = jfc.getSelectedFile();
+			String type = (jfc.getFileFilter() == jpegFilter)? "jpeg" : "png";
+			//create a path so that files are inside "VennDiagramImages" folder
+			File dirCreate = new File(path.getParentFile().getAbsolutePath()+"/VennDiagramImages");
+			if(!dirCreate.exists()) {
+				dirCreate.mkdir();
+			}
+			savePath = dirCreate.getAbsolutePath()+"/"+path.getName()+"."+type;
+			System.out.println(jfc.getSelectedFile().getPath() + " (*." + type + ")");
+			saveImage(saveImage,type,new File(savePath));
+		}
+	}
+	
+	
+	public void saveImage(BufferedImage saveImage,String type, File dest) {
+		try {
+						
+			ImageIO.write(saveImage,type,dest);
+			
+			ReadAndWriteObject rw = new ReadAndWriteObject(dest);
+			rw.write();
+			
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 	}
 	
 	
@@ -1178,4 +1352,5 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			}
 		}
 	}
+
 }

@@ -32,6 +32,28 @@ public class Draw extends JPanel{
 		
 	}
 	
+	//open mode
+	public Draw(int index,String mode) {
+		this.index = index;
+		endX = MainFrame.CI.get(index).getX()+(SIZE/2);
+		endY = MainFrame.CI.get(index).getY()+(SIZE/2);
+		
+		colors = new ArrayList<>();
+		this.setOpaque(false);
+		colors.add(MainFrame.CI.get(index).getColor());
+		int x = MainFrame.CI.get(index).getX();
+		int y = MainFrame.CI.get(index).getY();
+		int size = MainFrame.CI.get(index).getSize();
+		this.setBounds(x,y,size,size);
+		
+		this.addMouseListener(new MouseHandler(this));
+		this.addMouseMotionListener(new MouseHandler(this));
+		
+		
+	}
+	
+	
+	//new mode
 	public Draw(int index) {
 		colors = new ArrayList<>();
 		
@@ -62,6 +84,8 @@ public class Draw extends JPanel{
 	    g2d1.drawOval(0+1,0+1,SIZE-2,SIZE-2);
 	    g2d1.drawImage(img, 0, 0,SIZE,SIZE, null);
 	    
+	    
+	    System.out.println("W: " + cimg.getWidth() + " H: " + cimg.getHeight());
 	    int[] bounds = MainFrame.generateCircleBounds();
 	    endX = bounds[0]; //0 - X
 		endY = bounds[1]; //1 - Y
@@ -85,6 +109,7 @@ public class Draw extends JPanel{
 		System.out.println("HEY "+ " Components: " + super.getComponentCount());
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 		g2d.drawImage(MainFrame.CI.get(this.index).getImage(),0,0,MainFrame.CI.get(index).getSize(),MainFrame.CI.get(index).getSize(),null);
         
        g2d.dispose();

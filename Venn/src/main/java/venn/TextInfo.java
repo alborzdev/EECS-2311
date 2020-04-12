@@ -2,12 +2,26 @@ package venn;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.io.Serializable;
 
-public class TextInfo {
+public class TextInfo implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	private Font font;
 	private String text;
 	private Color foreColor, backColor;
 	private boolean isOpaque;
+	
+	public TextInfo() {
+		this.font = null;
+		this.text = "";
+		this.foreColor = this.backColor = null;
+		this.isOpaque = false;
+	}
 	
 	public TextInfo(String text) {
 		this.text = text;
@@ -57,6 +71,17 @@ public class TextInfo {
 		this.isOpaque = isOpaque;
 	}
 	
-	
+//	@Override 
+//	public void writeExternal(ObjectOutput out) throws IOException { 
+//		System.out.println("HelloWT");
+//	 
+//	}
+//	 
+//	@Override
+//	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException { 
+//	  System.out.println("HelloRT");
+//	}
+//	 
+//	
 
 }
