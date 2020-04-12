@@ -46,7 +46,6 @@ public class WelcomeFrame implements ActionListener {
 	public void actionPerformed(ActionEvent arg0) {
 		if (arg0.getSource() == btnContinue) {
 			this.frame.dispose();
-			CustomizeFrame frame = new CustomizeFrame();
 		}
 	}
 
