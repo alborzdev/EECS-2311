@@ -5,7 +5,7 @@ import java.awt.Font;
 
 public class ObjectInfo {
 	
-	private Object obj, prevObj;
+	private Object obj,infoObj;
 	private String action;
 	private int index, newSize,size;
 	private Color newTextForeColor, textForeColor, newTextBackColor, textBackColor;
@@ -17,10 +17,6 @@ public class ObjectInfo {
 	public ObjectInfo(Object obj, String action) {
 		this.obj = obj;
 		this.action = action;
-	}
-	
-	public Object getPrevObj() {
-		return prevObj;
 	}
 	
 	public int getSize() {
@@ -51,8 +47,12 @@ public class ObjectInfo {
 		return index;
 	}
 	
+	public Object getInfoObj() {
+		return this.infoObj;
+	}
+	
 	public void setInfoObj(Object obj) {
-		this.prevObj = obj;
+		this.infoObj = obj;
 	}
 	
 	public void setObj(Object obj) {

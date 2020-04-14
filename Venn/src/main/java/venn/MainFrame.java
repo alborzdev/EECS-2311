@@ -12,7 +12,10 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 
 
 public class MainFrame implements MouseListener, ActionListener, ListSelectionListener{
@@ -45,6 +48,7 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 	
 	private ArrayList<ObjectInfo> track; //for undo and redo
 	private int trackIndex = -1;
+	private boolean isOpaqueDisabled = false;
 	private final String ACTION_ADD = "Add", ACTION_REMOVE = "Remove", ACTION_FONT_CHANGED = "Font Changed";
 	private final String ACTION_RESIZE_SIZE = "Resize size", ACTION_RESIZE_STROKE = "Resize stroke";
 	private final String ACTION_COLOR_CHANGED_FORE = "Color Changed Fore", ACTION_COLOR_CHANGED_BACK = "Color Changed Back";
@@ -81,12 +85,12 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 				
 				
 				if(e.getKeyCode() == codeUndo) {
-					System.out.println("TrackIndex: "+ trackIndex + " track: " + track.toString());
 					System.out.println("HelloUndo");
+					System.out.println("TrackIndex: "+ trackIndex + " track: " + track.toString());
 					if(track.size() == 0) {
 						
 					}else if(trackIndex >= 0 && trackIndex < track.size()) {
-						System.out.println("Track Index: " + trackIndex);
+						System.out.println("Action: " + track.get(trackIndex).getAction() + " Index: " + trackIndex);
 						ObjectInfo o = track.get(trackIndex);
 						
 						if(o.getAction().equals(ACTION_ADD)) {
@@ -97,9 +101,9 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 							}
 						}else if(o.getAction().equals(ACTION_REMOVE)) {
 							if(o.getObj() instanceof Draw) {
-								addCircle(o.getObj(),o.getPrevObj());
+								addCircle(o.getObj(),o.getInfoObj());
 							}else {
-								addText(o.getIndex(),o.getObj(),o.getPrevObj());
+								addText(o.getIndex(),o.getObj(),o.getInfoObj());
 							}
 						}else if(o.getAction().equals(ACTION_RESIZE_SIZE)) {
 							
@@ -148,7 +152,8 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 							
 							((JLabel)jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[o.getIndex()]).setBackground(o.getTextBackColor());
 
-						}else if(o.getAction().equals(ACTION_OPAQUE)) {
+						}
+						else if(o.getAction().equals(ACTION_OPAQUE)) {
 							TextInfo ti= TI.get(o.getIndex());
 							ti.setOpaque(!o.isOpaque());
 							
@@ -165,14 +170,14 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 					if(track.size() == 0) {
 						
 					}else if(trackIndex >= 0 && trackIndex < track.size()) {
-						System.out.println("Track Index: " + trackIndex);
+						System.out.println("Action: " + track.get(trackIndex).getAction() + " Index: " + trackIndex);
 						ObjectInfo o = track.get(trackIndex);
 						
 						if(o.getAction().equals(ACTION_ADD)) {
 							if(o.getObj() instanceof Draw) {
-								addCircle(o.getObj(),o.getPrevObj());
+								addCircle(o.getObj(),o.getInfoObj());
 							}else {
-								addText(o.getIndex(),o.getObj(),o.getPrevObj());
+								addText(o.getIndex(),o.getObj(),o.getInfoObj());
 							}
 						}else if(o.getAction().equals(ACTION_REMOVE)) {
 							if(o.getObj() instanceof Draw) {
@@ -585,6 +590,7 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 		dtm.addColumn("Name");
 		dtm.addColumn("Object Type");
 		dtm.addColumn("Pos");
+		dtm.addColumn("Color");
 		
 		
 		
@@ -595,9 +601,19 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 				return column == 0;
 			}
 		};
+		
+		jtable.getColumnModel().getColumn(3).setCellRenderer(new CustomCellRenderer());
+		TableColumnModel dcm = jtable.getColumnModel();
+		dcm.getColumn(1).setMaxWidth(75);
+		dcm.getColumn(1).setMinWidth(75);
+		dcm.getColumn(2).setMaxWidth(35);
+		dcm.getColumn(2).setMinWidth(35);
+		dcm.getColumn(3).setMaxWidth(45);
+		dcm.getColumn(3).setMinWidth(45);
+		
+		
 		jtable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		jtable.getSelectionModel().addListSelectionListener(this);
-		jtable.getColumnModel().getColumn(2).setMaxWidth(40);
 		jtable.getModel().addTableModelListener(new TableModelListener() {
 
 			@Override
@@ -839,13 +855,27 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 				
 		checkOpaque = new JCheckBox("Opaque background");
 		checkOpaque.setSelected(false);
+		
 		checkOpaque.setHorizontalAlignment(JCheckBox.CENTER);
 		checkOpaque.setBounds(panelCustomizeText.getWidth()/2-100, btnBackColor.getY()+btnBackColor.getHeight()+5, 200, 30);
-		checkOpaque.addChangeListener(new ChangeListener() {
+		checkOpaque.addMouseListener( new MouseListener() {
 
 			@Override
-			public void stateChanged(ChangeEvent e) {
-				if(checkOpaque.isSelected()) {
+			public void mouseClicked(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+				if(checkOpaque.isSelected() && !isOpaqueDisabled) {
 					int[] indexes = jtable.getSelectedRows();
 					for(int i = 0; i < indexes.length; i++) {
 						int index = Integer.parseInt(jtable.getValueAt(indexes[i], 2).toString());
@@ -857,18 +887,19 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 							((JLabel)c).setOpaque(true);
 							
 							performUndoRedoCheck();
-							
+							System.out.println("Track Size Before: " + track.size());
 							ObjectInfo o = new ObjectInfo(c,ACTION_OPAQUE);
 							o.setOpaque(true);
 							o.setIndex(index);
 							o.setInfoObj(TI.get(index));
 							track.add(o);
-							
+							System.out.println("Track Size After: " + track.size());
+
 							jlpane.repaint();
 						}
 						
 					}
-				}else {
+				}else if(!checkOpaque.isSelected() && !isOpaqueDisabled){
 					int[] indexes = jtable.getSelectedRows();
 					for(int i = 0; i < indexes.length; i++) {
 						int index = Integer.parseInt(jtable.getValueAt(indexes[i], 2).toString());
@@ -880,18 +911,33 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 							((JLabel)c).setOpaque(false);
 						
 							performUndoRedoCheck();
-							
+							System.out.println("Track Size Before: " + track.size());
+
 							ObjectInfo o = new ObjectInfo(c,ACTION_OPAQUE);
 							o.setOpaque(false);
 							o.setIndex(index);
 							o.setInfoObj(TI.get(index));
 							track.add(o);
-							
+							System.out.println("Track Size After: " + track.size());
+
 							jlpane.repaint();
 						}
 						
 					}
 				}
+
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
 			}
 			
 		});
@@ -1090,6 +1136,8 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 		    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX].addMouseListener(this);
 		    addRow(CINDEX,CIRCLE_TYPE);
 			System.out.println("SIZE: "+ CI.size() + "CC: " + jlpane.getComponentCountInLayer(0));
+			
+			updateTable();
 		
 		}
 		
@@ -1101,7 +1149,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 	
 	public void addCircle(Object obj, Object ciObj) {
 		
-		ArrayList<CircleInfo> info = CI;
 		
 		if(PANE_INDEX < MAX_CIRCLES) {
 			PANE_INDEX++;
@@ -1148,9 +1195,10 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 	
 	public void addText(int index, Object obj, Object tiObj) {
 		
-		TI.add((TextInfo) tiObj);
+		TI.add(index,(TextInfo) tiObj);
 		updateComponentPlace(index,TEXT_TYPE,obj);
-		addRowAt(index,TEXT_TYPE,new Object[] {TI.get(index).getName(),TEXT_TYPE,index});
+		int circleCount = jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER);
+		addRowAt(circleCount+index,TEXT_TYPE,new Object[] {TI.get(index).getName(),TEXT_TYPE,index});
 		TINDEX++;
 		updateTable();
 	}
@@ -1159,9 +1207,9 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 		int row = findItInTable(index,TEXT_TYPE);
 
 		if(row != -1) {
-			TI.remove(index);
 			Component c = jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index];
 			jlpane.remove(c);
+			TI.remove(index);
 			removeRow(row);
 			TINDEX--;
 		}
@@ -1476,6 +1524,7 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 				sliderSize.setValue(600);
 				System.out.println("HELLO");
 			}else if(t.equals(TEXT_TYPE)) {
+				isOpaqueDisabled = true;
 				txtEditText.setEnabled(false);
 				txtEditText.setText("");
 				btnForeColor.setBackground(Color.black);
@@ -1484,6 +1533,8 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 				String[] arr = fontToString(f);
 				btnFont.setText(arr[0]+", "+arr[1]+", " + Integer.parseInt(arr[2]));
 				checkOpaque.setSelected(false);
+				
+				isOpaqueDisabled = false;
 			}
 		}else {
 			int index = Integer.parseInt(jtable.getValueAt(jtable.getSelectedRow(), 2).toString());
@@ -1495,6 +1546,8 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 				sliderStroke.setValue(CI.get(index).getStrokeSize());
 				sliderSize.setValue(CI.get(index).getSize());
 			}else if(t.equals(TEXT_TYPE)) {
+				isOpaqueDisabled = true;
+				
 				txtEditText.setText(TI.get(index).getText());
 				btnForeColor.setBackground(TI.get(index).getForeColor());
 				btnBackColor.setBackground(TI.get(index).getBackColor());
@@ -1502,6 +1555,8 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 				String[] arr = fontToString(f);
 				btnFont.setText(arr[0]+", "+arr[1]+", " + Integer.parseInt(arr[2]));
 				checkOpaque.setSelected(TI.get(index).isOpaque());
+				
+				isOpaqueDisabled = false;
 			}
 		}
 	}
@@ -1511,9 +1566,13 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 		for(int i = 0; i < jtable.getRowCount(); i++) {
 			if(jtable.getValueAt(i, 1).equals(CIRCLE_TYPE)) {
 				jtable.setValueAt(""+ccounter, i, 2);
+				Object value = jtable.getValueAt(i, 3);
+				jtable.getCellRenderer(i, 3).getTableCellRendererComponent(jtable, value, true, true, i, 3).setBackground(CI.get(ccounter).getColor());
 				ccounter++;
 			}else if(jtable.getValueAt(i, 1).equals(TEXT_TYPE)) {
 				jtable.setValueAt(""+tcounter, i, 2);
+				Object value = jtable.getValueAt(i, 3);
+				jtable.getCellRenderer(i, 3).getTableCellRendererComponent(jtable, value, true, true, i, 3).setBackground(TI.get(tcounter).getForeColor());
 				tcounter++;
 			}
 		}
@@ -1937,5 +1996,28 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 			}
 		}
 	}
-
+	
+	class CustomCellRenderer extends DefaultTableCellRenderer {
+		   public Component getTableCellRendererComponent(
+		            JTable table, Object value, boolean isSelected,
+		            boolean hasFocus, int row, int column)
+		   {
+		     
+		     int index = Integer.parseInt(jtable.getValueAt(row, 2).toString());
+		     String type = jtable.getValueAt(row,1).toString();
+		      if (!type.isEmpty() && type.equals(CIRCLE_TYPE)) {
+		    	  if((index>=0 && index < CI.size())) {
+		    		 setBackground(CI.get(index).getColor()); 
+		    	  }
+		      }
+		      else if(!type.isEmpty() && type.equals(TEXT_TYPE)) {
+		    	  if((index>=0 && index < TI.size())) {
+		    		  setBackground(TI.get(index).getForeColor()); 
+		    	  }
+		      }
+		  
+		      return super.getTableCellRendererComponent(table, value, isSelected,
+		                                                 hasFocus, row, column);
+		   }
+	}
 }
