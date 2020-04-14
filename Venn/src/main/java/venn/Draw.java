@@ -93,7 +93,6 @@ public class Draw extends JPanel{
 		ci.setX(endX-(SIZE/2));
 		ci.setY(endY-(SIZE/2));
 		ci.setImage(cimg);
-		ci.setName("Circle"+this.index);
         MainFrame.CI.add(this.index,ci);
         this.setBounds(endX-(SIZE/2), endY-(SIZE/2), SIZE, SIZE);
         this.addMouseListener(new MouseHandler(this));
@@ -110,7 +109,7 @@ public class Draw extends JPanel{
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-		g2d.drawImage(MainFrame.CI.get(this.index).getImage(),0,0,MainFrame.CI.get(index).getSize(),MainFrame.CI.get(index).getSize(),null);
+		g2d.drawImage(MainFrame.CI.get(index).getImage(),0,0,MainFrame.CI.get(index).getSize(),MainFrame.CI.get(index).getSize(),null);
         
        g2d.dispose();
        g.dispose();

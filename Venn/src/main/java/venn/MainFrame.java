@@ -1,73 +1,54 @@
 package venn;
 
-import java.awt.AWTException;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.RenderingHints;
-import java.awt.Robot;
+import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.Externalizable;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.*;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
-import com.google.common.io.Files;
 
-public class MainFrame implements MouseListener, KeyListener, ActionListener, ListSelectionListener{
+public class MainFrame implements MouseListener, ActionListener, ListSelectionListener{
 	public final static int WIDTH = 1366, HEIGHT = 768; // size of the window/frame
 	private final int MIN_CIRCLES = 2, MAX_CIRCLES = 7;
 	private static final String MODE_NEW = "New", MODE_OPEN = "Open";
-	private final String CIRCLE_TYPE = "Circle", TEXT_TYPE = "Text", PANEL_TYPE = "PANEL"; //PANEL_TYPE is the background jlayeredpanel
+	private final String CIRCLE_TYPE = "Circle", TEXT_TYPE = "Text";
 	private final String VALUE_DEFAULT = "Default", VALUE_CUSTOMIZE = "Customize";
 	private final int SIZE_C_MIN = 100, SIZE_C_MAX = 600, SIZE_C_INIT = 600, SIZE_S_MIN = 0, SIZE_S_MAX = 10, SIZE_S_INIT = 2;
-	private final String MODE_AUTO = "Automatic Placement and Resizing", MODE_AUTO_RESIZING = "Automatic Placement and No Resizing";
-	private final String MODE_MANUAL = "Manual";
+	private final String MODE_AUTO = "Automatic Placement and Resizing", MODE_MANUAL = "Manual";
 	private JSlider sliderSize, sliderStroke;
 	private JFrame frame; // declares frame
 	private JTable jtable;
-	private JLabel lblForeColor,lblBackColor,lblFont,lblFSize, lblCSize, lblStroke,lblCColor;
+	private JLabel lblForeColor,lblBackColor,lblFont, lblCSize, lblStroke,lblCColor;
 	private JPanel panelCustomizeText, panelCustomizeCir, panelCustomizeMsg;
 	private JCheckBox checkOpaque;
 	private JSpinner addCircleAndText;
-	private JButton btnAdd, btnDel, btnFont, btnAddText, btnForeColor,btnBackColor, btnCColor;
+	private JButton btnAdd, btnDel, btnFont, btnAddText, btnForeColor,btnBackColor, btnCColor, btnMore;
 	private JTextField txtAddText, txtEditText;
 	private JLayeredPane jlpane;
 	public static int PANE_INDEX = 2, CINDEX = 0, TINDEX = 0; //CINDEX = circle index, TINDEX = text index
 	public static ArrayList<CircleInfo> CI;
 	public static ArrayList<TextInfo> TI;
-	private JComboBox selectMode, sizeList, fontList;
+	private JComboBox selectMode;
 	private JColorChooser jcc;
 	private JFontChooser jfc;
 	public static boolean DRAGGING = false;
 	public boolean btnForeClicked = true, btnCColorClicked = false, btnFontClicked = false;
 	private String savePath="";
 	
+	private ArrayList<ObjectInfo> track; //for undo and redo
+	private int trackIndex = -1;
+	private final String ACTION_ADD = "Add", ACTION_REMOVE = "Remove", ACTION_FONT_CHANGED = "Font Changed";
+	private final String ACTION_RESIZE_SIZE = "Resize size", ACTION_RESIZE_STROKE = "Resize stroke";
+	private final String ACTION_COLOR_CHANGED_FORE = "Color Changed Fore", ACTION_COLOR_CHANGED_BACK = "Color Changed Back";
+	private final String MODE_TEXTSIZE = "Text Size", MODE_FONT = "Font", ACTION_OPAQUE = "Opaque" ;
 	public MainFrame() {
 		this(MODE_NEW,"");
 	}
@@ -75,27 +56,208 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 	public MainFrame(String mode, String path) {
 		
 /////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////FRAME RELATED STUFF/////////////////////////////////////////
+////////////////////////////FRAME RELATED STUFF/////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 		frame = new JFrame("Customizable Venn Diagram"); // inside "" is the name for the window/frame
 		frame.setSize(WIDTH, HEIGHT); // sets the frame to have size of 500 by 500
+		frame.setFocusable(true);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // closes the frame when x button is clicked (top right															// button)
 		frame.setLocationRelativeTo(null);// sets the location of the frame to be in the middle.
 		frame.setResizable(false); // makes the frame not resizable (constant size for frame)
 		frame.setLayout(null); // sets absolute layout for the frame, so when adding stuff you have to set					// x,y,width, and height.
 		//frame.add(this); // adds JPanel to the frame
 		frame.addMouseListener(this); // adds mouse listener to the frame so mouse related actions can be performed
+		frame.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+				
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				int codeUndo = KeyStroke.getKeyStroke(KeyEvent.VK_Z,ActionEvent.CTRL_MASK).getKeyCode();
+				int codeRedo = KeyStroke.getKeyStroke(KeyEvent.VK_Y,ActionEvent.CTRL_MASK).getKeyCode();
+				
+				
+				if(e.getKeyCode() == codeUndo) {
+					System.out.println("TrackIndex: "+ trackIndex + " track: " + track.toString());
+					System.out.println("HelloUndo");
+					if(track.size() == 0) {
+						
+					}else if(trackIndex >= 0 && trackIndex < track.size()) {
+						System.out.println("Track Index: " + trackIndex);
+						ObjectInfo o = track.get(trackIndex);
+						
+						if(o.getAction().equals(ACTION_ADD)) {
+							if(o.getObj() instanceof Draw) {
+								removeCircle(o.getIndex());
+							}else {
+								removeText(o.getIndex());
+							}
+						}else if(o.getAction().equals(ACTION_REMOVE)) {
+							if(o.getObj() instanceof Draw) {
+								addCircle(o.getObj(),o.getPrevObj());
+							}else {
+								addText(o.getIndex(),o.getObj(),o.getPrevObj());
+							}
+						}else if(o.getAction().equals(ACTION_RESIZE_SIZE)) {
+							
+							Component c = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[o.getIndex()];
+							((Draw)c).size = o.getSize();
+							CircleInfo ci = CI.get(o.getIndex());
+							ci.setSize(o.getSize());
+							ci.updateImage();
+														
+						}else if(o.getAction().equals(ACTION_RESIZE_STROKE)) {
+							
+							CircleInfo ci = CI.get(o.getIndex());
+							ci.setStrokeSize(o.getStrokeSize());
+							ci.updateImage();
+							
+							
+						}else if(o.getAction().equals(ACTION_FONT_CHANGED)) {
+							
+							TextInfo ti = TI.get(o.getIndex());
+							ti.setFont(o.getFont());
+							
+							JLabel lbl = ((JLabel)jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[o.getIndex()]);
+							lbl.setFont(o.getFont());
+							
+							updateTextSize(lbl,MODE_FONT);
+							updateTextSize(lbl,MODE_TEXTSIZE);
+							
+						}else if(o.getAction().equals(ACTION_COLOR_CHANGED_FORE)) {
+							if(o.getObj() instanceof Draw) {
+								
+								CircleInfo ci = CI.get(o.getIndex());
+								ci.setColor(o.getCircleForeColor());
+								ci.updateImage();
+								
+							}else {
+								
+								TextInfo ti = TI.get(o.getIndex());
+								ti.setForeColor(o.getTextForeColor());
+								
+								((JLabel)jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[o.getIndex()]).setForeground(o.getTextForeColor());
+
+							}
+						}else if(o.getAction().equals(ACTION_COLOR_CHANGED_BACK)) {
+							TextInfo ti = TI.get(o.getIndex());
+							ti.setBackColor(o.getTextBackColor());
+							
+							((JLabel)jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[o.getIndex()]).setBackground(o.getTextBackColor());
+
+						}else if(o.getAction().equals(ACTION_OPAQUE)) {
+							TextInfo ti= TI.get(o.getIndex());
+							ti.setOpaque(!o.isOpaque());
+							
+							((JLabel)jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[o.getIndex()]).setOpaque(!o.isOpaque());
+
+						}
+						jlpane.repaint();
+						trackIndex--;
+					}
+				}else if(e.getKeyCode() == codeRedo) {
+					System.out.println("HelloRedo");
+					trackIndex++;
+					System.out.println("TrackIndex: "+ trackIndex + " track: " + track.toString());
+					if(track.size() == 0) {
+						
+					}else if(trackIndex >= 0 && trackIndex < track.size()) {
+						System.out.println("Track Index: " + trackIndex);
+						ObjectInfo o = track.get(trackIndex);
+						
+						if(o.getAction().equals(ACTION_ADD)) {
+							if(o.getObj() instanceof Draw) {
+								addCircle(o.getObj(),o.getPrevObj());
+							}else {
+								addText(o.getIndex(),o.getObj(),o.getPrevObj());
+							}
+						}else if(o.getAction().equals(ACTION_REMOVE)) {
+							if(o.getObj() instanceof Draw) {
+								removeCircle(o.getIndex());
+							}else {
+								removeText(o.getIndex());
+							}
+						}else if(o.getAction().equals(ACTION_RESIZE_SIZE)) {
+							
+							Component c = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[o.getIndex()];
+							((Draw)c).size = o.getNewSize();
+							CircleInfo ci = CI.get(o.getIndex());
+							ci.setSize(o.getNewSize());
+							ci.updateImage();
+														
+							
+						}else if(o.getAction().equals(ACTION_RESIZE_STROKE)) {
+							
+							CircleInfo ci = CI.get(o.getIndex());
+							ci.setStrokeSize(o.getNewStrokeSize());
+							ci.updateImage();
+							
+							
+						}else if(o.getAction().equals(ACTION_FONT_CHANGED)) {
+							
+							TextInfo ti = TI.get(o.getIndex());
+							ti.setFont(o.getNewFont());
+							
+							JLabel lbl = ((JLabel)jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[o.getIndex()]);
+							lbl.setFont(o.getNewFont());
+							
+							updateTextSize(lbl,MODE_FONT);
+							updateTextSize(lbl,MODE_TEXTSIZE);
+						}else if(o.getAction().equals(ACTION_COLOR_CHANGED_FORE)) {
+							if(o.getObj() instanceof Draw) {
+								
+								CircleInfo ci = CI.get(o.getIndex());
+								ci.setColor(o.getNewCircleForeColor());
+								ci.updateImage();
+								
+							}else {
+								
+								TextInfo ti = TI.get(o.getIndex());
+								ti.setForeColor(o.getNewTextForeColor());
+								
+								((JLabel)jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[o.getIndex()]).setForeground(o.getNewTextForeColor());
+
+							}
+						}else if(o.getAction().equals(ACTION_COLOR_CHANGED_BACK)) {
+							TextInfo ti = TI.get(o.getIndex());
+							ti.setBackColor(o.getNewTextBackColor());
+							
+							((JLabel)jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[o.getIndex()]).setBackground(o.getNewTextBackColor());
+
+						}else if(o.getAction().equals(ACTION_OPAQUE)) {
+							TextInfo ti= TI.get(o.getIndex());
+							ti.setOpaque(o.isOpaque());
+							
+							((JLabel)jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[o.getIndex()]).setOpaque(o.isOpaque());
+						}
+						
+						jlpane.repaint();
+					
+					}else {
+						trackIndex--;
+					}
+				}
+
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				
+			}
+			
+		});
 		frame.addWindowListener(new WindowListener() {
 
 			@Override
 			public void windowOpened(WindowEvent e) {
-				// TODO Auto-generated method stub
 				
 			}
 
 			@Override
 			public void windowClosing(WindowEvent e) {
-				// TODO Auto-generated method stub
 				int choice = JOptionPane.showConfirmDialog(frame, "Do you want to save your changes?", "Save Changes", JOptionPane.YES_NO_CANCEL_OPTION);
 			
 				if(choice == JOptionPane.YES_OPTION) {
@@ -104,7 +266,6 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 					try {
 						saveImage = new Robot().createScreenCapture(jlpane.getBounds());
 					} catch (AWTException e2) {
-						// TODO Auto-generated catch block
 						e2.printStackTrace();
 					}
 					Graphics2D g2d = saveImage.createGraphics();
@@ -132,31 +293,26 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 			@Override
 			public void windowClosed(WindowEvent e) {
-				// TODO Auto-generated method stub
 				
 			}
 
 			@Override
 			public void windowIconified(WindowEvent e) {
-				// TODO Auto-generated method stub
 				
 			}
 
 			@Override
 			public void windowDeiconified(WindowEvent e) {
-				// TODO Auto-generated method stub
 				
 			}
 
 			@Override
 			public void windowActivated(WindowEvent e) {
-				// TODO Auto-generated method stub
 				
 			}
 
 			@Override
 			public void windowDeactivated(WindowEvent e) {
-				// TODO Auto-generated method stub
 				
 			}
 			
@@ -166,16 +322,12 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			try {
 				UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
 			} catch (ClassNotFoundException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			} catch (InstantiationException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			} catch (IllegalAccessException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			} catch (UnsupportedLookAndFeelException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		
@@ -237,7 +389,6 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 								try {
 									saveImage = new Robot().createScreenCapture(jlpane.getBounds());
 								} catch (AWTException e2) {
-									// TODO Auto-generated catch block
 									e2.printStackTrace();
 								}
 								Graphics2D g2d = saveImage.createGraphics();
@@ -257,8 +408,14 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 									saveImage(saveImage,type,spath);
 								}
 							}
+
+							javax.swing.SwingUtilities.invokeLater(new Runnable() {
+					            public void run() {
+									new MainFrame(MODE_OPEN, path.getAbsolutePath());
+
+					            }
+					        });
 							
-							new MainFrame(MODE_OPEN, path.getAbsolutePath());
 							
 							frame.dispose();
 
@@ -288,12 +445,10 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				BufferedImage saveImage = null;
 				try {
 					saveImage = new Robot().createScreenCapture(jlpane.getBounds());
 				} catch (AWTException e2) {
-					// TODO Auto-generated catch block
 					e2.printStackTrace();
 				}
 				Graphics2D g2d = saveImage.createGraphics();
@@ -324,12 +479,10 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				BufferedImage saveImage = null;
 				try {
 					saveImage = new Robot().createScreenCapture(jlpane.getBounds());
 				} catch (AWTException e2) {
-					// TODO Auto-generated catch block
 					e2.printStackTrace();
 				}
 				Graphics2D g2d = saveImage.createGraphics();
@@ -350,7 +503,6 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				System.exit(0);
 			}
 			
@@ -364,7 +516,6 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				System.exit(0);
 			}
 			
@@ -378,7 +529,6 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				System.exit(0);
 			}
 			
@@ -413,6 +563,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 ///////////////////////////////////////////////////////////////////////////////////////////////
 		CI = new ArrayList<CircleInfo>();
 		TI = new ArrayList<TextInfo>();
+		track = new ArrayList<ObjectInfo>();
 		
 		jcc = new JColorChooser();
 		jfc = new JFontChooser();
@@ -437,11 +588,38 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 		
 		
 		
-		Object[] o = new Object[17];
-		jtable = new JTable(dtm);
+		
+		jtable = new JTable(dtm) {
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return column == 0;
+			}
+		};
 		jtable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		jtable.getSelectionModel().addListSelectionListener(this);
 		jtable.getColumnModel().getColumn(2).setMaxWidth(40);
+		jtable.getModel().addTableModelListener(new TableModelListener() {
+
+			@Override
+			public void tableChanged(TableModelEvent e) {
+				if(e.getType() == TableModelEvent.UPDATE){
+					if(jtable.getSelectedRowCount() == 1) {
+						int index = Integer.parseInt(jtable.getValueAt(jtable.getSelectedRow(), 2).toString());
+						String type = jtable.getValueAt(jtable.getSelectedRow(), 1).toString();
+						
+						if(type.equals(TEXT_TYPE)) {
+							System.out.println("NewT: " + jtable.getValueAt(jtable.getSelectedRow(), 0).toString());
+							TI.get(index).setName(jtable.getValueAt(jtable.getSelectedRow(), 0).toString());
+						}else if(type.equals(CIRCLE_TYPE)) {
+							System.out.println("NewC: " + jtable.getValueAt(jtable.getSelectedRow(), 0).toString());
+							CI.get(index).setName(jtable.getValueAt(jtable.getSelectedRow(), 0).toString());
+
+						}
+					}
+				}
+			}
+			
+		});
 		
 		
 		JScrollPane jsp = new JScrollPane(jtable);
@@ -488,8 +666,9 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 		});
 		frame.add(addCircleAndText);
 		
+		
 		txtAddText = new JTextField();
-		txtAddText.setBounds(btnAdd.getX(), btnAdd.getY()+40+5,300,40);
+		txtAddText.setBounds(btnAdd.getX(), btnAdd.getY()+40+5,300-60,40);
 		txtAddText.addFocusListener(new FocusListener() {
 
 
@@ -504,19 +683,30 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				// TODO Auto-generated method stub
 				
 			}
 			
 		});
 		frame.add(txtAddText);
 		
+		
+		JButton btnMore = new JButton();
+		btnMore.setBounds(txtAddText.getX()+txtAddText.getWidth(), txtAddText.getY(),60,40);
+		btnMore.setAction(new AbstractAction("More") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new ExpandedArea(txtAddText.getText());
+			}
+		});
+		frame.add(btnMore);
+		
+		
 //		delAddText = new JTextField();
 //		delAddText.setBounds(txtAddText.getX()+230+20, btnAdd.getY()+40+20, 50, 40);
 //		frame.add(delAddText);
 
-		btnAddText = new JButton("ADD TEXT");
-		btnAddText.setBounds(txtAddText.getX(),txtAddText.getY()+40,txtAddText.getWidth(),40);
+		btnAddText = new JButton("Add Text");
+		btnAddText.setBounds(txtAddText.getX(),txtAddText.getY()+40,txtAddText.getWidth()+btnMore.getWidth(),40);
 		btnAddText.addMouseListener(this);
 		frame.add(btnAddText);
 		
@@ -524,7 +714,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 		lblMode.setBounds(btnAddText.getX()+5, btnAddText.getY()+btnAddText.getHeight(), 45, 40);
 		frame.add(lblMode);
 
-		String[] modes = {"Manual","Automatic Placement and Resizing","Automatic Placement and No Resizing"};
+		String[] modes = {"Manual","Automatic Placement and Resizing"};
 		selectMode = new JComboBox(modes);
 		selectMode.setSelectedIndex(1);
 		selectMode.setBounds(lblMode.getX()+lblMode.getWidth(), lblMode.getY(), 250, 40);
@@ -541,20 +731,23 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 		panelCustomizeText.setVisible(false);
 		
 		txtEditText = new JTextField();
-		txtEditText.setBounds(0, 5, 300, 30);
+		txtEditText.setBounds(0, 5, 300-60, 30);
 		txtEditText.getDocument().addDocumentListener(new DocumentListener(){
 			
 			@Override
 			public void insertUpdate(DocumentEvent e) {
-				// TODO Auto-generated method stub
-				if(jtable.getSelectedRowCount() == 1) {
+		
+				System.out.println("INSERT UPDATE !");
+				System.out.println("Hello Offset: "+ e.getLength());
+				if(jtable.getSelectedRowCount() == 1 && e.getLength() == 1) {
 					int index = Integer.parseInt(jtable.getValueAt(jtable.getSelectedRow(), 2).toString());
 					String type = jtable.getValueAt(jtable.getSelectedRow(), 1).toString();
 					if(type.equals(TEXT_TYPE) && txtEditText.getText().length() > 0) {
 						JLabel lbl = (JLabel) jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index]; 
-						lbl.setSize(500, 500);
 						lbl.setText(txtEditText.getText());
-						lbl.setSize(lbl.getPreferredSize());
+						
+						updateTextSize(lbl,MODE_TEXTSIZE);
+						
 						TI.get(index).setText(txtEditText.getText());
 					}
 				}
@@ -563,25 +756,33 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 			@Override
 			public void removeUpdate(DocumentEvent e) {
-				// TODO Auto-generated method stub
-				if(jtable.getSelectedRowCount() == 1) {
+				System.out.println("REMOVE UPDATE !");
+				if(jtable.getSelectedRowCount() == 1 && e.getLength() == 1) {
 					int index = Integer.parseInt(jtable.getValueAt(jtable.getSelectedRow(), 2).toString());
 					String type = jtable.getValueAt(jtable.getSelectedRow(), 1).toString();
 					if(type.equals(TEXT_TYPE) && txtEditText.getText().length() > 0) {
 						JLabel lbl = (JLabel) jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index]; 
-						lbl.setSize(500, 500);
 						lbl.setText(txtEditText.getText());
-						lbl.setSize(lbl.getPreferredSize());
+						
+						updateTextSize(lbl,MODE_TEXTSIZE);
+						
 						TI.get(index).setText(txtEditText.getText());
-					}else if (type.equals(TEXT_TYPE) && txtEditText.getText().length() == 0) {
-						 Runnable doHighlight = new Runnable() {
+					}else if (type.equals(TEXT_TYPE) && txtEditText.getText().length() == 0 && e.getLength() == 1) {
+						 Runnable reverseRemove = new Runnable() {
 						        @Override
 						        public void run() {
 									int index2 = Integer.parseInt(jtable.getValueAt(jtable.getSelectedRow(), 2).toString());
-						            txtEditText.setText(TI.get(index2).getText());
+									String type = jtable.getValueAt(jtable.getSelectedRow(), 1).toString();
+									if(type.equals(TEXT_TYPE)) {
+										txtEditText.setText(TI.get(index2).getText());
+										return;
+									}
 						        }
-						    };       
-						    SwingUtilities.invokeLater(doHighlight);
+						    };  
+						    
+						    SwingUtilities.invokeLater(reverseRemove);
+
+						  
 					}
 				}
 
@@ -589,13 +790,23 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 			@Override
 			public void changedUpdate(DocumentEvent e) {
-				// TODO Auto-generated method stub
-				
+				System.out.println("CHANGED UPDATE");
 				
 			}
 			
 		});
 		panelCustomizeText.add(txtEditText);
+		
+		JButton btnMoreT = new JButton();
+		btnMoreT.setBounds(txtEditText.getX()+txtEditText.getWidth(), txtEditText.getY(), 60, 30);
+		btnMoreT.setAction(new AbstractAction("More") {
+			public void actionPerformed(ActionEvent e) {
+				if(jtable.getSelectedRowCount() == 1) {
+					new ExpandedArea(txtEditText.getText());
+				}
+			}
+		});
+		panelCustomizeText.add(btnMoreT);
 		
 		lblFont = new JLabel("Selected Font: ");
 		lblFont.setBounds(txtEditText.getX(), txtEditText.getY()+txtEditText.getHeight(), 100, 30);
@@ -634,7 +845,6 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				// TODO Auto-generated method stub
 				if(checkOpaque.isSelected()) {
 					int[] indexes = jtable.getSelectedRows();
 					for(int i = 0; i < indexes.length; i++) {
@@ -643,7 +853,17 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 						
 						if(type.equals(TEXT_TYPE)) {
 							TI.get(index).setOpaque(true);
-							((JLabel)jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index]).setOpaque(true);
+							Component c = jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index];
+							((JLabel)c).setOpaque(true);
+							
+							performUndoRedoCheck();
+							
+							ObjectInfo o = new ObjectInfo(c,ACTION_OPAQUE);
+							o.setOpaque(true);
+							o.setIndex(index);
+							o.setInfoObj(TI.get(index));
+							track.add(o);
+							
 							jlpane.repaint();
 						}
 						
@@ -655,8 +875,18 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 						String type = jtable.getValueAt(indexes[i], 1).toString();
 						
 						if(type.equals(TEXT_TYPE)) {
-							TI.get(index).setOpaque(true);
-							((JLabel)jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index]).setOpaque(false);
+							TI.get(index).setOpaque(false);
+							Component c = jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index];
+							((JLabel)c).setOpaque(false);
+						
+							performUndoRedoCheck();
+							
+							ObjectInfo o = new ObjectInfo(c,ACTION_OPAQUE);
+							o.setOpaque(false);
+							o.setIndex(index);
+							o.setInfoObj(TI.get(index));
+							track.add(o);
+							
 							jlpane.repaint();
 						}
 						
@@ -705,16 +935,30 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				// TODO Auto-generated method stub
+				
 				if(!sliderStroke.getValueIsAdjusting()) {
 					int strokeSize = sliderStroke.getValue();
 					int[] indexes = jtable.getSelectedRows();
 					for(int i = 0; i < indexes.length; i++) {
 						int index = Integer.parseInt(jtable.getValueAt(indexes[i], 2).toString());
 						CircleInfo c = CI.get(index);
+						int prevStroke = c.getStrokeSize();
 						c.setStrokeSize(strokeSize);
 						c.updateImage();
 						CI.set(index, c);
+						
+						
+						performUndoRedoCheck();
+						
+						Component circle = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[index];
+						
+						ObjectInfo o = new ObjectInfo(circle,ACTION_RESIZE_STROKE);
+						o.setIndex(index);
+						o.setInfoObj(CI.get(index));
+						o.setStrokeSize(prevStroke);
+						o.setNewStrokeSize(strokeSize);
+						track.add(o);
+						
 						jlpane.repaint();
 					}
 				}
@@ -740,7 +984,6 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				System.out.println("HELLO2");
-				// TODO Auto-generated method stub
 				if(!sliderSize.getValueIsAdjusting()) {
 					int size = sliderSize.getValue();
 					int[] indexes = jtable.getSelectedRows();
@@ -748,13 +991,25 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 						int index = Integer.parseInt(jtable.getValueAt(indexes[i], 2).toString());
 						//CI.get(index).setSize(size);
 						//CI.get(index).updateImage();
+
 						CircleInfo c = CI.get(index);
+						int prevSize = c.getSize();
+						
 						c.setSize(size);
 						c.updateImage();
-						Draw d = (Draw) jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[index];
-						d.size = size;
-						d.setOpaque(false);
-						d.setBounds(c.getX(), c.getY(), c.getSize(), c.getSize());
+						Component d = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[index];
+						((Draw)d).size = size;
+						((Draw)d).setOpaque(false);
+						((Draw)d).setBounds(c.getX(), c.getY(), c.getSize(), c.getSize());
+						
+						performUndoRedoCheck();
+						
+						ObjectInfo o = new ObjectInfo(d,ACTION_RESIZE_SIZE);
+						o.setIndex(index);
+						o.setInfoObj(CI.get(index));
+						o.setSize(prevSize);
+						o.setNewSize(size);
+						track.add(o);
 						
 					}
 					jlpane.repaint();
@@ -786,7 +1041,8 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 /////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////INITIATE COMPONENT RELATED STUFF////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
-		
+		trackIndex = -1;
+
 		if(mode.equals(MODE_OPEN)) {
 			savePath = path;
 			
@@ -797,6 +1053,9 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			
 			PANE_INDEX = CI.size();
 			for(int i = 0; i < CI.size(); i++) {
+				if(i == 2 || i == 3) {
+					Draw.SIZE -= 145;
+				}
 				jlpane.add(new Draw(i,mode),JLayeredPane.DEFAULT_LAYER,i);
 			    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[i].addMouseListener(this);
 			    addRow(i,CIRCLE_TYPE);
@@ -805,12 +1064,11 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			TINDEX = TI.size();
 			for(int i = 0; i < TI.size(); i++) {
 				JLabel t = new Text(i);
-				if(t.getFont().getStyle() == 2 || t.getFont().getStyle() == 3) {
-					Dimension d = t.getPreferredSize();
-					t.setSize((int)d.getWidth()+5,(int)d.getHeight());
-				}else {
-					t.setSize(t.getPreferredSize());
-				}
+				
+				updateTextSize(t,MODE_FONT);
+				updateTextSize(t,MODE_TEXTSIZE);
+				
+				
 				jlpane.add(t,JLayeredPane.MODAL_LAYER,i);
 			    jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[i].addMouseListener(this);
 			    addRow(i,TEXT_TYPE);
@@ -841,6 +1099,151 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 	}
 	
 	
+	public void addCircle(Object obj, Object ciObj) {
+		
+		ArrayList<CircleInfo> info = CI;
+		
+		if(PANE_INDEX < MAX_CIRCLES) {
+			PANE_INDEX++;
+			if(PANE_INDEX == 3 || PANE_INDEX == 4) {
+				Draw.SIZE -= 145;
+			}
+			int index = ((Draw)obj).index;
+			CI.add(index, (CircleInfo) ciObj);
+			System.out.println("ADDING INDEX: " + index);
+			
+			//updates component's position and adds the component obj
+			updateComponentPlace(index,CIRCLE_TYPE, obj);
+
+			updateBounds(selectMode.getSelectedItem().toString());
+			
+			addRowAt(((Draw)obj).index,CIRCLE_TYPE,new Object[] {CI.get(index).getName(),CIRCLE_TYPE,index});
+			updateTable();
+		}
+	}
+	
+	public void removeCircle(int index) {
+		int row = findItInTable(index,CIRCLE_TYPE);
+
+		if(PANE_INDEX > MIN_CIRCLES && row != -1) {
+			PANE_INDEX--;
+			if(PANE_INDEX == 2 || PANE_INDEX == 3) {
+				Draw.SIZE += 145;
+			}
+			
+			if(jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER) != index+1) {
+				updateIndexes(index+1);
+			}
+			Component c = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[index];
+			jlpane.remove(c);
+
+			CI.remove(index);
+			updateBounds(selectMode.getSelectedItem().toString());
+			
+			removeRow(row);
+			
+			updateTable();
+		}
+	}
+	
+	public void addText(int index, Object obj, Object tiObj) {
+		
+		TI.add((TextInfo) tiObj);
+		updateComponentPlace(index,TEXT_TYPE,obj);
+		addRowAt(index,TEXT_TYPE,new Object[] {TI.get(index).getName(),TEXT_TYPE,index});
+		TINDEX++;
+		updateTable();
+	}
+	
+	public void removeText(int index) {
+		int row = findItInTable(index,TEXT_TYPE);
+
+		if(row != -1) {
+			TI.remove(index);
+			Component c = jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index];
+			jlpane.remove(c);
+			removeRow(row);
+			TINDEX--;
+		}
+	}
+	
+	public void updateComponentPlace(int index, String type, Object obj) {
+		if(type.equals(CIRCLE_TYPE)) {
+			int size = jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER);
+			Component[] c = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER);
+			for(int i = index; i < size; i++) {
+				jlpane.setLayer(c[i], JLayeredPane.DRAG_LAYER);
+			}
+			jlpane.add((Component)obj,JLayeredPane.DEFAULT_LAYER,index);
+			for(int i = index; i < size; i++) {
+				((Draw)c[i]).index = i+1;
+				jlpane.setLayer(c[i], JLayeredPane.DEFAULT_LAYER,i+1);
+			}
+		}else {
+			int size = jlpane.getComponentCountInLayer(JLayeredPane.MODAL_LAYER);
+			Component[] c = jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER);
+			for(int i = index; i < size; i++) {
+				jlpane.setLayer(c[i], JLayeredPane.DRAG_LAYER);
+			}
+			jlpane.add((Component)obj,JLayeredPane.MODAL_LAYER,index);
+		    jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index].addMouseListener(this);
+			for(int i = index; i < size; i++) {
+				jlpane.setLayer(c[i], JLayeredPane.MODAL_LAYER,i+1);
+			}
+		}
+	}
+	
+	
+	public int findItInTable(int index, String type) {
+		for(int i = 0; i < jtable.getRowCount(); i++) {
+			int in = Integer.parseInt((jtable.getValueAt(i, 2).toString()));
+			String t = jtable.getValueAt(i, 1).toString();
+			
+			if(in == index && type.equals(t)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	public void performUndoRedoCheck() {
+		if(trackIndex < 0) {
+			trackIndex = -1;
+		}
+		
+		trackIndex++;
+		if(trackIndex < track.size() && !track.isEmpty()) {
+			int trackSize = track.size();
+			for(int k = trackIndex; k < trackSize; k++) {
+				track.remove(trackIndex);
+				System.out.println("TrackIndex: "+ trackIndex + " track: " + track.toString());
+			}
+		}
+		
+	}
+	
+	public void updateTextSize(JLabel lbl, String mode) {
+		if(mode.equals(MODE_TEXTSIZE)) {
+			if(lbl.getPreferredSize().getWidth() <= 100) {
+				lbl.setSize(lbl.getPreferredSize());					
+			}else {
+				Dimension d = lbl.getPreferredSize();
+				lbl.setSize((int)(d.getWidth()+(100-d.getWidth())),(int)d.getHeight());
+			}
+		}else if(mode.equals(MODE_FONT)) {
+			if(lbl.getPreferredSize().getWidth() <= 100) {
+				if(lbl.getFont().getStyle() == 2 || lbl.getFont().getStyle() == 3) {
+					Dimension d = lbl.getPreferredSize();
+					lbl.setSize((int)d.getWidth()+5,(int)d.getHeight());
+				}else {
+					lbl.setSize(lbl.getPreferredSize());
+				}					
+			}else {
+				Dimension d = lbl.getPreferredSize();
+				lbl.setSize((int)(d.getWidth()+(100-d.getWidth())),(int)d.getHeight());
+			}
+		}
+	}
 	
 	public void initiateChoosingDirectory(BufferedImage saveImage) {
 		
@@ -911,8 +1314,13 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 	
 	public void updateIndexes(int startIndex) {
 		for(int i = startIndex; i < jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER);i++) {
-			Draw d = (Draw) jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[startIndex];
+			Draw d = (Draw) jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[i];
+			System.out.println("UpdateIndexesBefore: "+ d.index);
+
 			d.index -= 1;
+
+			System.out.println("UpdateIndexesAfter: "+ d.index);
+
 		}
 	}
 
@@ -941,8 +1349,8 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 		
 		prevElem.updateImage();
 		int[] bounds = generateCircleBounds();
-		int newX = bounds[0]-(Draw.SIZE/2);
-		int newY = bounds[1]-(Draw.SIZE/2);
+		int newX = bounds[0]-(prevElem.getSize()/2);
+		int newY = bounds[1]-(prevElem.getSize()/2);
 		prevElem.setX(newX);
 		prevElem.setY(newY);
 		CI.set(index, prevElem);
@@ -952,12 +1360,40 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 	public void addRow(int index, String type) {
 		DefaultTableModel dtm = (DefaultTableModel) jtable.getModel();
 		if(type.equals(CIRCLE_TYPE)) {
-			dtm.addRow(new Object[]{"Circle"+index, type, index});
+			dtm.addRow(new Object[]{CI.get(index).getName(), type, index});
 		}else {
-			dtm.addRow(new Object[] {"Text"+index,type,index});
+			dtm.addRow(new Object[] {TI.get(index).getName(),type,index});
 		}
 	}
 	
+	public void addRowAt(int rowIndex, String type, Object[] data) {
+			DefaultTableModel dtm = (DefaultTableModel) jtable.getModel();
+			if(type.equals(CIRCLE_TYPE)) {
+				System.out.println("ADD ROW AT: " + rowIndex);
+				String prevType = null;
+				if(rowIndex-1 >= 0 && rowIndex-1 < jtable.getRowCount()) {
+					prevType = jtable.getValueAt(rowIndex-1, 1).toString();
+				}else if(rowIndex-1 == -1) {
+					prevType = CIRCLE_TYPE;
+				}
+				if(prevType != null && prevType.equals(CIRCLE_TYPE)) {
+					dtm.insertRow(rowIndex,data);
+				}
+			}else {
+				if(type.equals(TEXT_TYPE)) {
+					String nextType = null;
+					if(rowIndex >=0 && rowIndex < jtable.getRowCount()) {
+						nextType = jtable.getValueAt(rowIndex, 1).toString();
+					}
+					if(nextType != null && nextType.equals(TEXT_TYPE)) {
+						dtm.insertRow(rowIndex,data);
+					}else if(rowIndex == jtable.getRowCount()) {
+						dtm.insertRow(rowIndex, data);
+					}
+				}
+			}
+		
+	}
 	
 	public void removeRow(int index) {
 		DefaultTableModel dtm = (DefaultTableModel) jtable.getModel();
@@ -1121,8 +1557,12 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
 		
-		
-		if(arg0.getSource() == btnAdd) {
+		if(arg0.getSource() == frame) {
+			
+			jtable.clearSelection();
+			frame.requestFocus();
+			
+		}else if(arg0.getSource() == btnAdd) {
 			for(int i = 0; i < getAddValue(); i++) {
 				if(PANE_INDEX < MAX_CIRCLES) {
 					PANE_INDEX++;
@@ -1136,8 +1576,16 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 					//}
 					jlpane.add(d,JLayeredPane.DEFAULT_LAYER,CINDEX);
 				    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX].addMouseListener(this);
-					DefaultTableModel dtm = (DefaultTableModel) jtable.getModel();
-					addRow(CINDEX,CIRCLE_TYPE);
+					
+					performUndoRedoCheck();
+					
+					ObjectInfo o = new ObjectInfo(d,ACTION_ADD);
+					o.setIndex(CINDEX);
+					o.setInfoObj(CI.get(CINDEX));
+					track.add(o);
+					System.out.println("Add: " + trackIndex + " AddedIndex: " + track.indexOf(o));
+
+					addRowAt(CINDEX,CIRCLE_TYPE, new Object[] {CI.get(CINDEX).getName(),CIRCLE_TYPE,CINDEX});
 				}
 			}
 			jlpane.repaint();
@@ -1160,11 +1608,26 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 							if(jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER) != index+1) {
 								updateIndexes(index+1);
 							}
+							
 							Component c = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[index];
+							
+							
+							
+							performUndoRedoCheck();
+							ObjectInfo o = new ObjectInfo(c,ACTION_REMOVE);
+							o.setIndex(index);
+							o.setInfoObj(CI.get(index));
+							track.add(o);
+							
 							jlpane.remove(c);
-
-							CI.remove(index);
-
+							CI.remove(index);							
+							
+							for(int ii = 0; ii < CI.size(); ii++) {
+								Component check = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[ii];
+								System.out.println("Check Index: " + ((Draw)check).index);
+							}
+							
+							
 							updateBounds(selectMode.getSelectedItem().toString());
 							removeRow(selIndexes[i]);
 						}
@@ -1172,10 +1635,19 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 						System.out.println("TEXT_TYPE");
 						TINDEX--;
 						int index = Integer.parseInt(jtable.getValueAt(selIndexes[i], 2).toString());
-						TI.remove(index);
 						Component c = jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index];
 						jlpane.remove(c);
 						removeRow(selIndexes[i]);
+						
+						performUndoRedoCheck();
+						
+						ObjectInfo o = new ObjectInfo(c,ACTION_REMOVE);
+						o.setIndex(index);
+						o.setInfoObj(TI.get(index));
+						track.add(o);
+
+						TI.remove(index);
+
 					}
 				}
 				updateTable();
@@ -1185,18 +1657,39 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			if(txtAddText.getText().length() > 0) {
 				for(int i = 0; i < getAddValue(); i++) {
 					
-					addRow(TINDEX,TEXT_TYPE);
 					
 					Font f = stringToFont(btnFont.getText());
 					Object[] data = {f,btnForeColor.getBackground(), btnBackColor.getBackground(),
 							checkOpaque.isSelected(), txtAddText.getText()};
 					
 					JLabel t= new Text(TINDEX,data);
+					//t.setMaximumSize(new Dimension(40,40));
 					System.out.println(t.getFont().toString());
-					t.setSize(t.getPreferredSize());
+					if(t.getPreferredSize().getWidth() <= 100) {
+						if(f.getStyle() == 2 || f.getStyle() == 3) {
+							Dimension d = t.getPreferredSize();
+							t.setSize((int)d.getWidth()+5,(int)d.getHeight());
+						}else {
+							t.setSize(t.getPreferredSize());
+						}					
+					}else {
+						Dimension d = t.getPreferredSize();
+						t.setSize((int)(d.getWidth()+(100-d.getWidth())),(int)d.getHeight());
+					}
 					jlpane.add(t,JLayeredPane.MODAL_LAYER);
 				    jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[TINDEX].addMouseListener(this);
+				   
+				    int circleCount = jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER);
+				    addRowAt(TINDEX+circleCount,TEXT_TYPE,new Object[] {TI.get(TINDEX).getName(),TEXT_TYPE,TINDEX});
+				    
+					performUndoRedoCheck();
+					ObjectInfo o = new ObjectInfo(t,ACTION_ADD);
+					o.setIndex(TINDEX);
+					o.setInfoObj(TI.get(TINDEX));
+					track.add(o);
+					
 					TINDEX++;
+
 				}
 				txtAddText.setText("");
 				switchPanel(2);
@@ -1208,20 +1701,21 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 
 	@Override
 	public void mouseEntered(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void mouseExited(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void mousePressed(MouseEvent arg0) {
-		for(int k = 0; k < jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER); k++) {
-			if(jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[k] == arg0.getSource()) {
+		System.out.println("Mouse Pressed: START");
+		int clayerSize = jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER);
+		Component[] clayerComp = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER);
+		for(int k = 0; k < clayerSize; k++) {
+			if(clayerComp[k] == arg0.getSource()) {
 				for(int j = 0; j < jtable.getRowCount(); j++) {
 					int index = Integer.parseInt(jtable.getValueAt(j, 2).toString());
 					String type = jtable.getValueAt(j, 1).toString();
@@ -1234,8 +1728,10 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			}
 		}
 		
-		for(int k = 0; k < jlpane.getComponentCountInLayer(JLayeredPane.MODAL_LAYER); k++) {
-			if(jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[k] == arg0.getSource()) {
+		int tlayerSize = jlpane.getComponentCountInLayer(JLayeredPane.MODAL_LAYER);
+		Component[] tlayerComp = jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER);
+		for(int k = 0; k < tlayerSize; k++) {
+			if(tlayerComp[k] == arg0.getSource()) {
 				for(int j = 0; j < jtable.getRowCount(); j++) {
 					int index = Integer.parseInt(jtable.getValueAt(j, 2).toString());
 					String type = jtable.getValueAt(j, 1).toString();
@@ -1248,11 +1744,12 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			}
 		}
 		
+		System.out.println("Mouse Pressed: STOP");
+		
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 
 	}
 	
@@ -1272,7 +1769,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			Font f = stringToFont(btnFont.getText());
 			jfc.setSelectedFont(f);
 			int option = jfc.showDialog(frame);
-			if(option == jfc.OK_OPTION) {
+			if(option == JFontChooser.OK_OPTION) {
 				Font newF = jfc.getSelectedFont();
 				String[] arr = fontToString(newF);
 				btnFont.setText(arr[0] + ", " + arr[1] + ", " + Integer.parseInt(arr[2]));
@@ -1282,16 +1779,19 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 					
 					if(type.equals(TEXT_TYPE)) {
 						JLabel lbl = (JLabel) jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index];
-						lbl.setSize(500, 500);
 						lbl.setFont(newF);
-						if(newF.getStyle() == 2 || newF.getStyle() == 3) {
-							Dimension d = lbl.getPreferredSize();
-							lbl.setSize((int)d.getWidth()+5,(int)d.getHeight());
-						}else {
-							lbl.setSize(lbl.getPreferredSize());
-						}
 						
+						updateTextSize(lbl,MODE_FONT);
 						TI.get(index).setFont(newF);
+						
+						performUndoRedoCheck();
+						ObjectInfo o = new ObjectInfo(lbl,ACTION_FONT_CHANGED);
+						o.setIndex(index);
+						o.setInfoObj(TI.get(index));
+						o.setFont(f);
+						o.setNewFont(newF);
+						track.add(o);
+
 					}
 				}
 			}
@@ -1318,6 +1818,7 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 			dialog.setVisible(true);
 		}else {
 			if(btnCColorClicked) {
+				Color prev = btnCColor.getBackground();
 				Color c = jcc.getColor();
 				btnCColor.setBackground(c);
 				int[] indexes = jtable.getSelectedRows();
@@ -1328,11 +1829,25 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 					if(type.equals(CIRCLE_TYPE)) {
 						CI.get(index).setColor(c);
 						CI.get(index).updateImage();
+						
+						performUndoRedoCheck();
+						
+						Component circle = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[index];
+						
+						ObjectInfo o = new ObjectInfo(circle,ACTION_COLOR_CHANGED_FORE);
+						o.setIndex(index);
+						o.setInfoObj(CI.get(index));
+						o.setCircleForeColor(prev);
+						o.setNewCircleForeColor(c);
+						track.add(o);
+
+						
 						jlpane.repaint();
 					}
 					
 				}
 			}else if(btnForeClicked) {
+				Color prev = btnForeColor.getBackground();
 				Color c = jcc.getColor();
 				btnForeColor.setBackground(c);
 				int[] indexes = jtable.getSelectedRows();
@@ -1342,13 +1857,27 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 					
 					if(type.equals(TEXT_TYPE)) {
 						TI.get(index).setForeColor(c);
-						jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index].setForeground(c);
+						
+						Component text = jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index];
+						((JLabel)text).setForeground(c);
+						
+						performUndoRedoCheck();
+
+						ObjectInfo o = new ObjectInfo(text,ACTION_COLOR_CHANGED_FORE);
+						o.setIndex(index);
+						o.setInfoObj(TI.get(index));
+						o.setTextForeColor(prev);
+						o.setNewTextForeColor(c);
+						track.add(o);
+
+						
 						jlpane.repaint();
 					}
 					
 				}
 
 			}else {
+				Color prev = btnBackColor.getBackground();
 				Color c = jcc.getColor();
 				btnBackColor.setBackground(c);
 				int[] indexes = jtable.getSelectedRows();
@@ -1358,59 +1887,26 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 					
 					if(type.equals(TEXT_TYPE)) {
 						TI.get(index).setBackColor(c);
-						jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index].setBackground(c);
+						
+						Component text = jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index];
+						((JLabel)text).setBackground(c);
+						
+						performUndoRedoCheck();
+
+						ObjectInfo o = new ObjectInfo(text,ACTION_COLOR_CHANGED_BACK);
+						o.setIndex(index);
+						o.setInfoObj(TI.get(index));
+						o.setTextBackColor(prev);
+						o.setNewTextBackColor(c);
+						track.add(o);
+
+						
 						jlpane.repaint();
 					}
 					
 				}
 			}
 		}
-	}
-
-
-
-	@Override
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
-	
-		
-	}
-
-
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-		// TODO Auto-generated method stub
-		int codeOpen = KeyStroke.getKeyStroke(KeyEvent.VK_O,ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK).getKeyCode();
-		int codeSave = KeyStroke.getKeyStroke(KeyEvent.VK_S,ActionEvent.CTRL_MASK).getKeyCode();
-		int codeSaveAs = KeyStroke.getKeyStroke(KeyEvent.VK_A,ActionEvent.CTRL_MASK).getKeyCode();
-		int codeClose = KeyStroke.getKeyStroke(KeyEvent.VK_W,ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK).getKeyCode();
-		int codeAbout = KeyStroke.getKeyStroke(KeyEvent.VK_A,ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK).getKeyCode();
-		int codeSearch = KeyStroke.getKeyStroke(KeyEvent.VK_S,ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK).getKeyCode();
-		
-		System.out.println("keycode: "+ e.getKeyCode() + " keystrokecode: " + codeClose);
-		
-		if(e.getKeyCode() == codeOpen) {
-			
-		}else if(e.getKeyCode() == codeSave) {
-			
-		}else if(e.getKeyCode() == codeSaveAs) {
-			
-		}else if(e.getKeyCode() == codeClose) {
-			System.exit(0);
-		}else if(e.getKeyCode() == codeAbout) {
-			
-		}else if(e.getKeyCode() == codeSearch) {
-			
-		}
-	}
-
-
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
-	
 	}
 	
 	
@@ -1434,8 +1930,6 @@ public class MainFrame implements MouseListener, KeyListener, ActionListener, Li
 						setProperties(TEXT_TYPE, VALUE_CUSTOMIZE);
 					}
 					switchPanel(0);
-				}else if(isSameType(PANEL_TYPE)) {
-					
 				}else {
 					//UNDEFINED TYPE...ERROR
 					switchPanel(2);

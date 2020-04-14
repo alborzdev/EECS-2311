@@ -12,7 +12,8 @@ public class TextInfo implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private Font font;
-	private String text;
+	private String text,name;
+	private static int ID=0;
 	private Color foreColor, backColor;
 	private boolean isOpaque;
 	
@@ -21,6 +22,8 @@ public class TextInfo implements Serializable {
 		this.text = "";
 		this.foreColor = this.backColor = null;
 		this.isOpaque = false;
+		this.name = "Text"+ID;
+		ID++;
 	}
 	
 	public TextInfo(String text) {
@@ -28,8 +31,21 @@ public class TextInfo implements Serializable {
 		this.foreColor = Color.black;
 		this.font= new Font("SansSerif",Font.PLAIN,12);
 		this.isOpaque = false;
+		this.name = "Text"+ID;
+		ID++;
 	}
-
+	
+	
+	public void setName(String name) {
+		if(name.length()>0) {
+			this.name = name;
+		}
+	}
+	
+	public String getName() {
+		return this.name;
+	}
+	
 	public String getText() {
 		return text;
 	}

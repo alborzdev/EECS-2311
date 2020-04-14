@@ -17,14 +17,16 @@ public class CircleInfo implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String name;
 	private int x, y, strokeSize, size;
+	private static int ID=0;
 	private Color c;
 	private int[][] imgArray;
 	
 	public CircleInfo() {
-		this.name = "";
+		this.name = "Circle"+ID;
 		this.x = this.y = this.strokeSize = this.size = 0;
 		this.c = null;
 		imgArray = new int[600][600];
+		ID++;
 	}
 	
 	
@@ -33,8 +35,9 @@ public class CircleInfo implements Serializable {
 		this.size = size;
 		this.c = c;
 		this.x = this.y = 0;
-		this.name = "";
+		this.name = "Circle"+ID;
 		imgArray = new int[600][600];
+		ID++;
 	}
 	
 	public int getSize() {
@@ -50,6 +53,11 @@ public class CircleInfo implements Serializable {
 	}
 	
 	public void setStrokeSize(int stroke) {
+		if(stroke < 0 ) {
+			stroke = 0;
+		}else if(stroke > 10) {
+			stroke = 10;
+		}
 		this.strokeSize = stroke;
 	}
 	
@@ -58,7 +66,9 @@ public class CircleInfo implements Serializable {
 	}
 
 	public void setName(String name) {
-		this.name = name;
+		if(name.length()>0) {
+			this.name = name;
+		}
 	}
 	
 	

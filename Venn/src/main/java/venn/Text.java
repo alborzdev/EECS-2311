@@ -1,5 +1,6 @@
 package venn;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
@@ -49,7 +50,7 @@ public class Text extends JLabel {
 		
 		this.addMouseListener(new MouseHandler(this));
 		this.addMouseMotionListener(new MouseHandler(this));
-		this.setBounds(MainFrame.WIDTH/4-50, MainFrame.HEIGHT/4-50, 9*text.length(), 40);
+		this.setBounds(MainFrame.WIDTH/4-50, MainFrame.HEIGHT/4-50, 100, 40);
 	}
 	
 	
@@ -66,7 +67,14 @@ private static class MouseHandler implements MouseListener, MouseMotionListener 
 		// TODO Auto-generated method stub
 		int dx = e.getXOnScreen() - x;
 		int dy = e.getYOnScreen() - y;
+		System.out.println("LABEL SIZE: " + this.lbl.getWidth() + " BY " + this.lbl.getHeight());
 		this.lbl.setBounds(this.lbl.getX()+dx, this.lbl.getY()+dy, this.lbl.getWidth(), this.lbl.getHeight());
+		if(lbl.getPreferredSize().getWidth() <= 100) {
+			lbl.setSize(lbl.getPreferredSize());
+		}else{
+			Dimension d = lbl.getPreferredSize();
+			lbl.setSize((int)(d.getWidth()+(100-d.getWidth())),(int)d.getHeight());
+		}
 		x += dx;
 		y += dy;
 	}
@@ -88,6 +96,7 @@ private static class MouseHandler implements MouseListener, MouseMotionListener 
 		// TODO Auto-generated method stub
 		x = e.getXOnScreen();
 		y = e.getYOnScreen();
+		
 	}
 
 	@Override
