@@ -1,4 +1,4 @@
-package venn; //
+package venn; 
 
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
@@ -131,42 +131,7 @@ public class Main extends JPanel implements MouseListener{
 			paintComponent(this.getGraphics()); //calls the paintComponent method to draw more circles
 		}
 	}
-
-	@Override
-	public void mouseEntered(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseExited(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mousePressed(MouseEvent arg0) {
-		
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-//	@Override
-//	public void mouseDragged(MouseEvent arg0) {
-//		// TODO Auto-generated method stub
-//		
-//	}
-//
-//	@Override
-//	public void mouseMoved(MouseEvent arg0) {
-//		// TODO Auto-generated method stub
-//		
-//	}
-
-	
-
 }
+
+
+
