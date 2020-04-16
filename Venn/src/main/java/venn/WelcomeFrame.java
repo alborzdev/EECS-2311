@@ -13,6 +13,8 @@ public class WelcomeFrame implements ActionListener {
 
 	public JButton btnContinue;
 	public JFrame frame;
+	public JButton btnCreate;
+	public JButton btnExit;
 
 	public WelcomeFrame() {
 
@@ -29,22 +31,39 @@ public class WelcomeFrame implements ActionListener {
 		frame.getContentPane().add(lblWelcomeToThe);
 		
 		
-		JLabel lblLogo = new JLabel(new ImageIcon("Resources/StatVenn_Edited.png"));
+		JLabel lblLogo = new JLabel(new ImageIcon("Resources/Logo.png"));
 		lblLogo.setBounds(108, 181, 800, 400);
 		frame.add(lblLogo);
 		
-		btnContinue = new JButton("Continue");
+		btnContinue = new JButton("Open");
 		btnContinue.setFont(new Font("Times New Roman", Font.PLAIN, 26));
 		btnContinue.setBounds(418, 578, 191, 74);
 		btnContinue.addActionListener(this);
 		frame.getContentPane().add(btnContinue);
+		frame.setVisible(true); // sets frame visible to true
+		
+		btnExit = new JButton("Exit");
+		btnExit.setFont(new Font("Times New Roman", Font.PLAIN, 26));
+		btnExit.setBounds(200, 578, 191, 74);
+		btnExit.addActionListener(this);
+		frame.getContentPane().add(btnExit);
+		frame.setVisible(true); // sets frame visible to true
+		
+		btnCreate = new JButton("Create");
+		btnCreate.setFont(new Font("Times New Roman", Font.PLAIN, 26));
+		btnCreate.setBounds(650, 578, 191, 74);
+		btnCreate.addActionListener(this);
+		frame.getContentPane().add(btnCreate);
 		frame.setVisible(true); // sets frame visible to true
 
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		if (arg0.getSource() == btnContinue) {
+		if (arg0.getSource() == btnContinue || arg0.getSource() == btnCreate) {
+			this.frame.dispose();
+			MainFrame frame = new MainFrame();
+		} else if(arg0.getSource() == btnExit) {
 			this.frame.dispose();
 		}
 	}
