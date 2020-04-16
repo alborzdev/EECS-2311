@@ -86,18 +86,5 @@ public class TextInfo implements Serializable {
 	public void setOpaque(boolean isOpaque) {
 		this.isOpaque = isOpaque;
 	}
-	
-//	@Override 
-//	public void writeExternal(ObjectOutput out) throws IOException { 
-//		System.out.println("HelloWT");
-//	 
-//	}
-//	 
-//	@Override
-//	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException { 
-//	  System.out.println("HelloRT");
-//	}
-//	 
-//	
 
 }

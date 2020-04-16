@@ -20,45 +20,44 @@ import javax.swing.table.TableColumnModel;
 
 public class MainFrame implements MouseListener, ActionListener, ListSelectionListener{
 	public final static int WIDTH = 1366, HEIGHT = 768; // size of the window/frame
-	private final int MIN_CIRCLES = 2, MAX_CIRCLES = 7;
-	private static final String MODE_NEW = "New", MODE_OPEN = "Open";
-	private final String CIRCLE_TYPE = "Circle", TEXT_TYPE = "Text";
-	private final String VALUE_DEFAULT = "Default", VALUE_CUSTOMIZE = "Customize";
-	private final int SIZE_C_MIN = 100, SIZE_C_MAX = 600, SIZE_C_INIT = 600, SIZE_S_MIN = 0, SIZE_S_MAX = 10, SIZE_S_INIT = 2;
-	private final String MODE_AUTO = "Automatic Placement and Resizing", MODE_MANUAL = "Manual";
-	private JSlider sliderSize, sliderStroke;
-	private JFrame frame; // declares frame
-	private JTable jtable;
-	private JLabel lblForeColor,lblBackColor,lblFont, lblCSize, lblStroke,lblCColor;
-	private JPanel panelCustomizeText, panelCustomizeCir, panelCustomizeMsg;
-	private JCheckBox checkOpaque;
-	private JSpinner addCircleAndText;
-	private JButton btnAdd, btnDel, btnFont, btnAddText, btnForeColor,btnBackColor, btnCColor, btnMore;
-	private JTextField txtAddText, txtEditText;
-	private JLayeredPane jlpane;
+	public final int MIN_CIRCLES = 2, MAX_CIRCLES = 7;
+	public static final String MODE_NEW = "New", MODE_OPEN = "Open";
+	public final String CIRCLE_TYPE = "Circle", TEXT_TYPE = "Text";
+	public final String VALUE_DEFAULT = "Default", VALUE_CUSTOMIZE = "Customize";
+	public final int SIZE_C_MIN = 100, SIZE_C_MAX = 600, SIZE_C_INIT = 600, SIZE_S_MIN = 0, SIZE_S_MAX = 10, SIZE_S_INIT = 2;
+	public final String MODE_AUTO = "Automatic Placement and Resizing", MODE_MANUAL = "Manual";
+	public JSlider sliderSize, sliderStroke;
+	public JFrame frame; // declares frame
+	public JTable jtable;
+	public JLabel lblForeColor,lblBackColor,lblFont, lblCSize, lblStroke,lblCColor;
+	public JPanel panelCustomizeText, panelCustomizeCir, panelCustomizeMsg;
+	public JCheckBox checkOpaque;
+	public JSpinner addCircleAndText;
+	public JButton btnAdd, btnDel, btnFont, btnAddText, btnForeColor,btnBackColor, btnCColor, btnMore;
+	public JTextField txtAddText, txtEditText;
+	public JLayeredPane jlpane;
 	public static int PANE_INDEX = 2, CINDEX = 0, TINDEX = 0; //CINDEX = circle index, TINDEX = text index
 	public static ArrayList<CircleInfo> CI;
 	public static ArrayList<TextInfo> TI;
-	private JComboBox selectMode;
-	private JColorChooser jcc;
-	private JFontChooser jfc;
+	public JComboBox selectMode;
+	public JColorChooser jcc;
+	public JFontChooser jfc;
 	public static boolean DRAGGING = false;
 	public boolean btnForeClicked = true, btnCColorClicked = false, btnFontClicked = false;
-	private String savePath="";
+	public String savePath="";
 	
-	private ArrayList<ObjectInfo> track; //for undo and redo
-	private int trackIndex = -1;
-	private boolean isOpaqueDisabled = false;
-	private final String ACTION_ADD = "Add", ACTION_REMOVE = "Remove", ACTION_FONT_CHANGED = "Font Changed";
-	private final String ACTION_RESIZE_SIZE = "Resize size", ACTION_RESIZE_STROKE = "Resize stroke";
-	private final String ACTION_COLOR_CHANGED_FORE = "Color Changed Fore", ACTION_COLOR_CHANGED_BACK = "Color Changed Back";
-	private final String MODE_TEXTSIZE = "Text Size", MODE_FONT = "Font", ACTION_OPAQUE = "Opaque" ;
+	public ArrayList<ObjectInfo> track; //for undo and redo
+	public int trackIndex = -1;
+	public boolean isOpaqueDisabled = false;
+	public final String ACTION_ADD = "Add", ACTION_REMOVE = "Remove", ACTION_FONT_CHANGED = "Font Changed";
+	public final String ACTION_RESIZE_SIZE = "Resize size", ACTION_RESIZE_STROKE = "Resize stroke";
+	public final String ACTION_COLOR_CHANGED_FORE = "Color Changed Fore", ACTION_COLOR_CHANGED_BACK = "Color Changed Back";
+	public final String MODE_TEXTSIZE = "Text Size", MODE_FONT = "Font", ACTION_OPAQUE = "Opaque" ;
 	public MainFrame() {
 		this(MODE_NEW,"");
 	}
 	
 	public MainFrame(String mode, String path) {
-		
 /////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////FRAME RELATED STUFF/////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,12 +84,9 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 				
 				
 				if(e.getKeyCode() == codeUndo) {
-					System.out.println("HelloUndo");
-					System.out.println("TrackIndex: "+ trackIndex + " track: " + track.toString());
 					if(track.size() == 0) {
-						
+						// do nothing
 					}else if(trackIndex >= 0 && trackIndex < track.size()) {
-						System.out.println("Action: " + track.get(trackIndex).getAction() + " Index: " + trackIndex);
 						ObjectInfo o = track.get(trackIndex);
 						
 						if(o.getAction().equals(ACTION_ADD)) {
@@ -164,13 +160,10 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 						trackIndex--;
 					}
 				}else if(e.getKeyCode() == codeRedo) {
-					System.out.println("HelloRedo");
 					trackIndex++;
-					System.out.println("TrackIndex: "+ trackIndex + " track: " + track.toString());
 					if(track.size() == 0) {
 						
 					}else if(trackIndex >= 0 && trackIndex < track.size()) {
-						System.out.println("Action: " + track.get(trackIndex).getAction() + " Index: " + trackIndex);
 						ObjectInfo o = track.get(trackIndex);
 						
 						if(o.getAction().equals(ACTION_ADD)) {
@@ -347,6 +340,59 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 		JMenu menuFile = new JMenu("File");
 		JMenu menuHelp = new JMenu("Help");
 		
+		JMenuItem itemNew = new JMenuItem();
+		Action newFile = new AbstractAction("New") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int choice = JOptionPane.showConfirmDialog(frame, "Do you want to save your changes?", "Save Changes", JOptionPane.YES_NO_CANCEL_OPTION);
+				
+				if(choice == JOptionPane.YES_OPTION) {
+					
+					BufferedImage saveImage = null;
+					try {
+						saveImage = new Robot().createScreenCapture(jlpane.getBounds());
+					} catch (AWTException e2) {
+						e2.printStackTrace();
+					}
+					Graphics2D g2d = saveImage.createGraphics();
+					g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+					jlpane.paint(g2d);
+					
+					if(! new File(savePath).exists()) {
+						savePath = "";
+					}
+					
+					if(savePath == "") {
+						initiateChoosingDirectory(saveImage);
+					}else {
+						String type = savePath.substring(savePath.lastIndexOf(".")+1);
+						File path = new File(savePath);
+						
+						saveImage(saveImage,type,path);
+					}
+					
+					javax.swing.SwingUtilities.invokeLater(new Runnable() {
+			            public void run() {
+							new MainFrame(MainFrame.MODE_NEW, "");
+			            }
+			        });
+					frame.dispose();
+
+				}else if(choice == JOptionPane.NO_OPTION) {
+					javax.swing.SwingUtilities.invokeLater(new Runnable() {
+			            public void run() {
+							new MainFrame(MainFrame.MODE_NEW, "");
+			            }
+			        });
+					frame.dispose();
+				}
+			}
+		};
+		
+		newFile.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK));
+
+		itemNew.setAction(newFile);
+		
 		JMenuItem itemOpen = new JMenuItem();
 		Action open = new AbstractAction("Open") {
 
@@ -382,7 +428,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 						name = path.getName();
 					}
 					
-					System.out.println("Selected File to Open: " + path);
 					
 					if(new File(path.getParentFile().getAbsolutePath()+"/"+name+"C.txt").exists()) {
 						if(new File(path.getParentFile().getAbsolutePath()+"/"+name+"T.txt").exists()) {
@@ -508,6 +553,35 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				int choice = JOptionPane.showConfirmDialog(frame, "Do you want to save your changes?", "Save Changes", JOptionPane.YES_NO_OPTION);
+				
+				if(choice == JOptionPane.YES_OPTION) {
+					BufferedImage saveImage = null;
+					try {
+						saveImage = new Robot().createScreenCapture(jlpane.getBounds());
+					} catch (AWTException e2) {
+						e2.printStackTrace();
+					}
+					Graphics2D g2d = saveImage.createGraphics();
+					g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+					jlpane.paint(g2d);
+					
+					if(! new File(savePath).exists()) {
+						savePath = "";
+					}
+					
+					if(savePath == "") {
+						initiateChoosingDirectory(saveImage);
+					}else {
+						String type = savePath.substring(savePath.lastIndexOf(".")+1);
+						File spath = new File(savePath);
+						
+						saveImage(saveImage,type,spath);
+					}
+				}
+				
+				
+				frame.dispose();
 				System.exit(0);
 			}
 			
@@ -542,7 +616,8 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 
 		itemSearch.setAction(search);
 
-		
+		menuFile.add(itemNew);
+		menuFile.addSeparator();
 		menuFile.add(itemOpen);
 		menuFile.addSeparator();
 		menuFile.add(itemSave);
@@ -624,10 +699,8 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 						String type = jtable.getValueAt(jtable.getSelectedRow(), 1).toString();
 						
 						if(type.equals(TEXT_TYPE)) {
-							System.out.println("NewT: " + jtable.getValueAt(jtable.getSelectedRow(), 0).toString());
 							TI.get(index).setName(jtable.getValueAt(jtable.getSelectedRow(), 0).toString());
 						}else if(type.equals(CIRCLE_TYPE)) {
-							System.out.println("NewC: " + jtable.getValueAt(jtable.getSelectedRow(), 0).toString());
 							CI.get(index).setName(jtable.getValueAt(jtable.getSelectedRow(), 0).toString());
 
 						}
@@ -753,8 +826,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 			@Override
 			public void insertUpdate(DocumentEvent e) {
 		
-				System.out.println("INSERT UPDATE !");
-				System.out.println("Hello Offset: "+ e.getLength());
 				if(jtable.getSelectedRowCount() == 1 && e.getLength() == 1) {
 					int index = Integer.parseInt(jtable.getValueAt(jtable.getSelectedRow(), 2).toString());
 					String type = jtable.getValueAt(jtable.getSelectedRow(), 1).toString();
@@ -772,7 +843,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 
 			@Override
 			public void removeUpdate(DocumentEvent e) {
-				System.out.println("REMOVE UPDATE !");
 				if(jtable.getSelectedRowCount() == 1 && e.getLength() == 1) {
 					int index = Integer.parseInt(jtable.getValueAt(jtable.getSelectedRow(), 2).toString());
 					String type = jtable.getValueAt(jtable.getSelectedRow(), 1).toString();
@@ -806,7 +876,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 
 			@Override
 			public void changedUpdate(DocumentEvent e) {
-				System.out.println("CHANGED UPDATE");
 				
 			}
 			
@@ -887,13 +956,11 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 							((JLabel)c).setOpaque(true);
 							
 							performUndoRedoCheck();
-							System.out.println("Track Size Before: " + track.size());
 							ObjectInfo o = new ObjectInfo(c,ACTION_OPAQUE);
 							o.setOpaque(true);
 							o.setIndex(index);
 							o.setInfoObj(TI.get(index));
 							track.add(o);
-							System.out.println("Track Size After: " + track.size());
 
 							jlpane.repaint();
 						}
@@ -911,14 +978,12 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 							((JLabel)c).setOpaque(false);
 						
 							performUndoRedoCheck();
-							System.out.println("Track Size Before: " + track.size());
 
 							ObjectInfo o = new ObjectInfo(c,ACTION_OPAQUE);
 							o.setOpaque(false);
 							o.setIndex(index);
 							o.setInfoObj(TI.get(index));
 							track.add(o);
-							System.out.println("Track Size After: " + track.size());
 
 							jlpane.repaint();
 						}
@@ -1029,7 +1094,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				System.out.println("HELLO2");
 				if(!sliderSize.getValueIsAdjusting()) {
 					int size = sliderSize.getValue();
 					int[] indexes = jtable.getSelectedRows();
@@ -1088,6 +1152,10 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 ////////////////////////////INITIATE COMPONENT RELATED STUFF////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 		trackIndex = -1;
+		CINDEX = TINDEX = 0;
+		clearAllInfo();
+		Draw.SIZE = 600;
+		PANE_INDEX = 2;
 
 		if(mode.equals(MODE_OPEN)) {
 			savePath = path;
@@ -1129,13 +1197,11 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 			jlpane.add(new Draw(CINDEX),JLayeredPane.DEFAULT_LAYER,CINDEX);
 		    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX].addMouseListener(this);
 		    addRow(CINDEX,CIRCLE_TYPE);
-			System.out.println("SIZE: "+ CI.size() + "CC: " + jlpane.getComponentCountInLayer(0));
 		
 			CINDEX++;
 		    jlpane.add(new Draw(CINDEX),JLayeredPane.DEFAULT_LAYER,CINDEX);
 		    jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[CINDEX].addMouseListener(this);
 		    addRow(CINDEX,CIRCLE_TYPE);
-			System.out.println("SIZE: "+ CI.size() + "CC: " + jlpane.getComponentCountInLayer(0));
 			
 			updateTable();
 		
@@ -1157,7 +1223,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 			}
 			int index = ((Draw)obj).index;
 			CI.add(index, (CircleInfo) ciObj);
-			System.out.println("ADDING INDEX: " + index);
 			
 			//updates component's position and adds the component obj
 			updateComponentPlace(index,CIRCLE_TYPE, obj);
@@ -1264,7 +1329,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 			int trackSize = track.size();
 			for(int k = trackIndex; k < trackSize; k++) {
 				track.remove(trackIndex);
-				System.out.println("TrackIndex: "+ trackIndex + " track: " + track.toString());
 			}
 		}
 		
@@ -1327,7 +1391,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 				savePath = path.getParentFile().getAbsolutePath()+"/"+path.getName()+"."+type;
 			}
 			
-			System.out.println(jfc.getSelectedFile().getPath() + " (*." + type + ")");
 			saveImage(saveImage,type,new File(savePath));
 		}
 	}
@@ -1363,11 +1426,9 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 	public void updateIndexes(int startIndex) {
 		for(int i = startIndex; i < jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER);i++) {
 			Draw d = (Draw) jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[i];
-			System.out.println("UpdateIndexesBefore: "+ d.index);
 
 			d.index -= 1;
 
-			System.out.println("UpdateIndexesAfter: "+ d.index);
 
 		}
 	}
@@ -1417,7 +1478,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 	public void addRowAt(int rowIndex, String type, Object[] data) {
 			DefaultTableModel dtm = (DefaultTableModel) jtable.getModel();
 			if(type.equals(CIRCLE_TYPE)) {
-				System.out.println("ADD ROW AT: " + rowIndex);
 				String prevType = null;
 				if(rowIndex-1 >= 0 && rowIndex-1 < jtable.getRowCount()) {
 					prevType = jtable.getValueAt(rowIndex-1, 1).toString();
@@ -1522,7 +1582,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 				sliderStroke.setValueIsAdjusting(true);
 				sliderStroke.setValue(2);
 				sliderSize.setValue(600);
-				System.out.println("HELLO");
 			}else if(t.equals(TEXT_TYPE)) {
 				isOpaqueDisabled = true;
 				txtEditText.setEnabled(false);
@@ -1613,6 +1672,15 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 		return Integer.parseInt(value);
 	}
 	
+	public void clearAllInfo() {
+		jlpane.removeAll();
+		PANE_INDEX = 0;
+		CINDEX = 0;
+		CI.clear();
+		TI.clear();
+		Draw.SIZE=600;
+	}
+	
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
 		
@@ -1642,7 +1710,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 					o.setIndex(CINDEX);
 					o.setInfoObj(CI.get(CINDEX));
 					track.add(o);
-					System.out.println("Add: " + trackIndex + " AddedIndex: " + track.indexOf(o));
 
 					addRowAt(CINDEX,CIRCLE_TYPE, new Object[] {CI.get(CINDEX).getName(),CIRCLE_TYPE,CINDEX});
 				}
@@ -1655,14 +1722,12 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 				
 				for(int i = selIndexes.length-1; i >= 0; i--) {
 					if(jtable.getValueAt(selIndexes[i], 1).toString().equals(CIRCLE_TYPE)) {
-						System.out.println("CIRCLE_TYPE");
 						if(PANE_INDEX > MIN_CIRCLES) {
 							PANE_INDEX--;
 							if(PANE_INDEX == 2 || PANE_INDEX == 3) {
 								Draw.SIZE += 145;
 							}
 							int index = Integer.parseInt(jtable.getValueAt(selIndexes[i], 2).toString());
-							System.out.println("CI SIZE: " + index);
 							
 							if(jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER) != index+1) {
 								updateIndexes(index+1);
@@ -1681,17 +1746,13 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 							jlpane.remove(c);
 							CI.remove(index);							
 							
-							for(int ii = 0; ii < CI.size(); ii++) {
-								Component check = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER)[ii];
-								System.out.println("Check Index: " + ((Draw)check).index);
-							}
+
 							
 							
 							updateBounds(selectMode.getSelectedItem().toString());
 							removeRow(selIndexes[i]);
 						}
 					}else if(jtable.getValueAt(selIndexes[i], 1).toString().equals(TEXT_TYPE)) {
-						System.out.println("TEXT_TYPE");
 						TINDEX--;
 						int index = Integer.parseInt(jtable.getValueAt(selIndexes[i], 2).toString());
 						Component c = jlpane.getComponentsInLayer(JLayeredPane.MODAL_LAYER)[index];
@@ -1723,7 +1784,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 					
 					JLabel t= new Text(TINDEX,data);
 					//t.setMaximumSize(new Dimension(40,40));
-					System.out.println(t.getFont().toString());
 					if(t.getPreferredSize().getWidth() <= 100) {
 						if(f.getStyle() == 2 || f.getStyle() == 3) {
 							Dimension d = t.getPreferredSize();
@@ -1770,7 +1830,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 
 	@Override
 	public void mousePressed(MouseEvent arg0) {
-		System.out.println("Mouse Pressed: START");
 		int clayerSize = jlpane.getComponentCountInLayer(JLayeredPane.DEFAULT_LAYER);
 		Component[] clayerComp = jlpane.getComponentsInLayer(JLayeredPane.DEFAULT_LAYER);
 		for(int k = 0; k < clayerSize; k++) {
@@ -1803,7 +1862,6 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 			}
 		}
 		
-		System.out.println("Mouse Pressed: STOP");
 		
 	}
 
@@ -1812,13 +1870,15 @@ public class MainFrame implements MouseListener, ActionListener, ListSelectionLi
 
 	}
 	
-	public static void main(String[] args) {
-		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new MainFrame();
-            }
-        });
-	}
+	
+	//Only for testing
+//	public static void main(String[] args) {
+//		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+//            public void run() {
+//                new MainFrame();
+//            }
+//        });
+//	}
 
 
 

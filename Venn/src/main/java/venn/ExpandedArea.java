@@ -16,6 +16,7 @@ public class ExpandedArea extends JFrame {
 		this.text = text;
 	
 		setSize(500,500);
+		setTitle("Read Only - Expanded Text Document");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setLocationRelativeTo(null);
 		addWindowListener(new WindowListener() {
@@ -66,7 +67,8 @@ public class ExpandedArea extends JFrame {
 		
 		JTextArea textarea = new JTextArea();
 		textarea.setText(this.text);
-		
+		textarea.setLineWrap(true);
+		textarea.setWrapStyleWord(true);
 		textarea.getDocument().addDocumentListener(new DocumentListener() {
 
 			@Override

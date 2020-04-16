@@ -67,7 +67,6 @@ private static class MouseHandler implements MouseListener, MouseMotionListener 
 		// TODO Auto-generated method stub
 		int dx = e.getXOnScreen() - x;
 		int dy = e.getYOnScreen() - y;
-		System.out.println("LABEL SIZE: " + this.lbl.getWidth() + " BY " + this.lbl.getHeight());
 		this.lbl.setBounds(this.lbl.getX()+dx, this.lbl.getY()+dy, this.lbl.getWidth(), this.lbl.getHeight());
 		if(lbl.getPreferredSize().getWidth() <= 100) {
 			lbl.setSize(lbl.getPreferredSize());

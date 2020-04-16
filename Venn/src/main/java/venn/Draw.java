@@ -72,7 +72,6 @@ public class Draw extends JPanel{
 		float rr = (float) (Math.random());
 		float rg = (float) (Math.random());
 		float rb = (float) (Math.random());
-		System.out.printf("RR: %.2f RG: %.2f RB: %.2f\n",rr,rg,rb);
 		foreColor = new Color(rr,rg,rb,0.5f);
 		}while(colors.contains(foreColor));
 		
@@ -85,7 +84,6 @@ public class Draw extends JPanel{
 	    g2d1.drawImage(img, 0, 0,SIZE,SIZE, null);
 	    
 	    
-	    System.out.println("W: " + cimg.getWidth() + " H: " + cimg.getHeight());
 	    int[] bounds = MainFrame.generateCircleBounds();
 	    endX = bounds[0]; //0 - X
 		endY = bounds[1]; //1 - Y
@@ -105,7 +103,6 @@ public class Draw extends JPanel{
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 
-		System.out.println("HEY "+ " Components: " + super.getComponentCount());
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);

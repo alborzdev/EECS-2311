@@ -162,16 +162,6 @@ public class CircleInfo implements Serializable {
 		g2d.dispose();
 		g2d1.dispose();
 	}
-	
-//	@Override 
-//	public void writeExternal(ObjectOutput out) throws IOException {
-//		  System.out.println("HelloWC");
-//	}
-//	  
-//	@Override 
-//	public void readExternal(ObjectInput in) throws IOException,ClassNotFoundException { 
-//		  System.out.println("HelloRC");
-//	}
-	 
+
 		
 }

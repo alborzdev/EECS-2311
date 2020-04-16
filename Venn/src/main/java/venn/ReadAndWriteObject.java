@@ -32,7 +32,6 @@ public class ReadAndWriteObject{
 	public void read() {
 		try {
 			
-			System.out.println("RW: " + destPath.getName());
 			
 			String name = "";
 			
